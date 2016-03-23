@@ -59,6 +59,9 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',  # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
         'PORT': '',  # Set to empty string for default.
+        'TEST': {
+            'SERIALIZE': False,
+        },
     }
 }
 
@@ -124,6 +127,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# CDMS SETTINGS
+
+CDMS_ADFS_URL = ''
+CDMS_BASE_URL = ''
+CDMS_USERNAME = ''
+CDMS_PASSWORD = ''
 
 
 # .local.py overrides all the common settings.

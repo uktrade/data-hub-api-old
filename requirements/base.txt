@@ -3,7 +3,8 @@
 # to each package in each requirements/*.txt.
 
 Django==1.9.4
-
 django-model-utils==2.4
-
 psycopg2==2.6.1
+requests==2.9.1
+pyquery==1.2.11
+pytz==2016.2
