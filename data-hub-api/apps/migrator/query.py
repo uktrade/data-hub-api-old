@@ -9,6 +9,8 @@ from django.utils.tree import Node
 from django.utils import timezone
 from django.core.exceptions import FieldDoesNotExist, FieldError
 
+from reversion import revisions as reversion
+
 from cdms_api import api as cdms_conn
 
 from .models import CDMSModel
@@ -138,7 +140,7 @@ class CDMSRefreshCompiler(CDMSGetCompiler):
                 obj, cdms_data,
                 cdms_known_related_objects=self.query.cdms_known_related_objects
             )
-            obj.save(skip_cdms=True)
+            obj._save_without_revision(skip_cdms=True)
 
             # 2nd save for the modified/created field (this can be improved)
             update_fields = {}
@@ -151,6 +153,7 @@ class CDMSRefreshCompiler(CDMSGetCompiler):
                 update_fields['created'] = obj.created
                 update_fields['cdms_pk'] = obj.cdms_pk
             manager.skip_cdms().filter(pk=obj.pk).update(**update_fields)
+            reversion.default_revision_manager.save_revision([obj])
 
         return obj
 

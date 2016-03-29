@@ -1,5 +1,5 @@
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 
 class BaseDeleteTestCase(BaseMockedCDMSApiTestCase):
@@ -8,6 +8,7 @@ class BaseDeleteTestCase(BaseMockedCDMSApiTestCase):
         self.obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk', name='name'
         )
+        self.reset_revisions()
 
 
 class DeleteTestCase(BaseDeleteTestCase):
@@ -23,6 +24,7 @@ class DeleteTestCase(BaseDeleteTestCase):
             SimpleObj, kwargs={'guid': self.obj.cdms_pk}
         )
         self.assertAPINotCalled(['list', 'update', 'get', 'create'])
+        self.assertNoRevisions()
 
     def test_with_manager(self):
         """
@@ -35,6 +37,7 @@ class DeleteTestCase(BaseDeleteTestCase):
             SimpleObj.objects.filter(name__icontains='name').delete
         )
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_exception_triggers_rollback(self):
         """
@@ -50,6 +53,7 @@ class DeleteTestCase(BaseDeleteTestCase):
         self.assertEqual(SimpleObj.objects.skip_cdms().count(), 1)
 
         self.assertAPINotCalled(['list', 'update', 'get', 'create'])
+        self.assertNoRevisions()
 
 
 class DeleteSkipCDMSTestCase(BaseDeleteTestCase):
@@ -62,6 +66,7 @@ class DeleteSkipCDMSTestCase(BaseDeleteTestCase):
         self.assertEqual(SimpleObj.objects.skip_cdms().count(), 0)
 
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_with_manager(self):
         """
@@ -72,3 +77,4 @@ class DeleteSkipCDMSTestCase(BaseDeleteTestCase):
         self.assertEqual(SimpleObj.objects.skip_cdms().count(), 0)
 
         self.assertNoAPICalled()
+        self.assertNoRevisions()

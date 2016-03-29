@@ -2,6 +2,8 @@ from contextlib import ContextDecorator
 
 from django.db import models, transaction
 
+from reversion import revisions as reversion
+
 from core.lib_models import TimeStampedModel
 
 
@@ -34,7 +36,14 @@ class CDMSModel(TimeStampedModel):
         super(CDMSModel, self).__init__(*args, **kwargs)
         self._cdms_skip = False
 
+    def _save_without_revision(self, *args, **kwargs):
+        overriding_skip_cdms = kwargs.pop('skip_cdms', self._cdms_skip)
+        with override_skip_cdms(self, overriding_skip_cdms):
+            return super(CDMSModel, self).save(*args, **kwargs)
+
+    @reversion.create_revision()
     def save(self, *args, **kwargs):
+        reversion.set_ignore_duplicates(True)
         overriding_skip_cdms = kwargs.pop('skip_cdms', self._cdms_skip)
         with override_skip_cdms(self, overriding_skip_cdms):
             return super(CDMSModel, self).save(*args, **kwargs)

@@ -2,7 +2,7 @@ from .base import *  # noqa
 
 
 INSTALLED_APPS += (
-    'migrator.tests.queries',
+    'migrator.tests',
 )
 
 CDMS_BASE_URL = 'https://testing.com'

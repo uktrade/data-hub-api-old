@@ -2,7 +2,9 @@ from unittest import mock
 
 from django.test.testcases import TransactionTestCase
 
-from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create
+from reversion.models import Revision, Version
+
+from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdms_update
 
 
 class BaseMockedCDMSApiTestCase(TransactionTestCase):
@@ -10,6 +12,7 @@ class BaseMockedCDMSApiTestCase(TransactionTestCase):
     def __call__(self, result, mocked_cdms_api, *args, **kwargs):
         mocked_cdms_api.create.side_effect = mocked_cdms_create()
         mocked_cdms_api.get.side_effect = mocked_cdms_get()
+        mocked_cdms_api.update.side_effect = mocked_cdms_update()
         self.mocked_cdms_api = mocked_cdms_api
         super(BaseMockedCDMSApiTestCase, self).__call__(result, *args, **kwargs)
 
@@ -64,3 +67,13 @@ class BaseMockedCDMSApiTestCase(TransactionTestCase):
 
     def assertAPIDeleteCalled(self, model, kwargs, tot=1):
         self.assertAPICalled(model, 'delete', kwargs=kwargs, tot=tot)
+
+    def assertNoRevisions(self):
+        self.assertEqual(Version.objects.count(), 0)
+        self.assertEqual(Revision.objects.count(), 0)
+
+    def reset_revisions(self):
+        Version.objects.all().delete()
+        Revision.objects.all().delete()
+
+        self.assertNoRevisions()
