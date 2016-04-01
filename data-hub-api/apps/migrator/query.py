@@ -18,6 +18,9 @@ from .exceptions import NotMappingFieldException
 from .lookups import FilterNode, Lookup
 
 
+REVISION_COMMENT_CDMS_REFRESH = 'CDMS refresh'
+
+
 class CDMSCompiler(object):
     def __init__(self, query):
         self.query = query
@@ -153,7 +156,9 @@ class CDMSRefreshCompiler(CDMSGetCompiler):
                 update_fields['created'] = obj.created
                 update_fields['cdms_pk'] = obj.cdms_pk
             manager.skip_cdms().filter(pk=obj.pk).update(**update_fields)
-            reversion.default_revision_manager.save_revision([obj])
+            reversion.default_revision_manager.save_revision(
+                [obj], comment=REVISION_COMMENT_CDMS_REFRESH
+            )
 
         return obj
 

@@ -80,6 +80,7 @@ class UpdateWithSaveTestCase(BaseMockedCDMSApiTestCase):
         version_list = reversion.get_for_object(obj)
         self.assertEqual(len(version_list), 1)
         version = version_list[0]
+        self.assertIsNotCDMSRefreshRevision(version.revision)
         version_data = version.field_dict
         self.assertEqual(version_data['name'], obj.name)
         self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)
@@ -150,6 +151,7 @@ class UpdateWithSaveTestCase(BaseMockedCDMSApiTestCase):
         version_list = reversion.get_for_object(obj)
         self.assertEqual(len(version_list), 1)
         version = version_list[0]
+        self.assertIsNotCDMSRefreshRevision(version.revision)
         version_data = version.field_dict
         self.assertEqual(version_data['name'], obj.name)
         self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)

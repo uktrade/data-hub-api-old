@@ -112,6 +112,7 @@ class GetByCmdPKTestCase(BaseGetTestCase):
         version_list_obj = reversion.get_for_object(obj)
         self.assertEqual(len(version_list_obj), 1)
         version = version_list_obj[0]
+        self.assertIsCDMSRefreshRevision(version.revision)
         version_data = version.field_dict
         self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)
         self.assertEqual(version_data['modified'], obj.modified)
@@ -264,6 +265,7 @@ class SyncGetTestCase(BaseGetTestCase):
         version_list = reversion.get_for_object(obj)
         self.assertEqual(len(version_list), 1)
         version = version_list[0]
+        self.assertIsCDMSRefreshRevision(version.revision)
         version_data = version.field_dict
         self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)
         self.assertEqual(version_data['modified'], obj.modified)

@@ -4,6 +4,8 @@ from django.test.testcases import TransactionTestCase
 
 from reversion.models import Revision, Version
 
+from migrator.query import REVISION_COMMENT_CDMS_REFRESH
+
 from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdms_update
 
 
@@ -71,6 +73,12 @@ class BaseMockedCDMSApiTestCase(TransactionTestCase):
     def assertNoRevisions(self):
         self.assertEqual(Version.objects.count(), 0)
         self.assertEqual(Revision.objects.count(), 0)
+
+    def assertIsCDMSRefreshRevision(self, revision):
+        self.assertEqual(revision.comment, REVISION_COMMENT_CDMS_REFRESH)
+
+    def assertIsNotCDMSRefreshRevision(self, revision):
+        self.assertNotEqual(revision.comment, REVISION_COMMENT_CDMS_REFRESH)
 
     def reset_revisions(self):
         Version.objects.all().delete()

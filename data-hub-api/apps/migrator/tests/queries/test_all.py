@@ -108,6 +108,7 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(len(version_list_obj1), 1)
         version = version_list_obj1[0]
         version_data = version.field_dict
+        self.assertIsCDMSRefreshRevision(version.revision)
         self.assertEqual(version_data['cdms_pk'], obj1.cdms_pk)
         self.assertEqual(version_data['modified'], obj1.modified)
         self.assertEqual(version_data['created'], obj1.created)
@@ -117,6 +118,7 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(len(version_list_obj3), 1)
         version = version_list_obj3[0]
         version_data = version.field_dict
+        self.assertIsCDMSRefreshRevision(version.revision)
         self.assertEqual(version_data['cdms_pk'], obj3.cdms_pk)
         self.assertEqual(version_data['modified'], obj3.modified)
         self.assertEqual(version_data['created'], obj3.created)
