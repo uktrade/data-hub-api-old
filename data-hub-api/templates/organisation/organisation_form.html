@@ -7,4 +7,17 @@
     {{ form.as_p }}
     <input type="submit" value="{% if organisation %}Update{% else %}Create{% endif %}" />
   </form>
+
+
+
+  {% if versions %}
+  <section>
+    <h3>Changes</h3>
+    <ul>
+        {% for version in versions %}
+        <li>{{ version.revision.date_created|date }} - {{ version.revision.date_created|time }}{% if version.revision.comment %} - <strong>{{version.revision.comment}}</strong>{% endif %}</li>
+        {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
 {% endblock %}

@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView
 
+from reversion import revisions as reversion
+
 from .models import Organisation
 
 
@@ -56,3 +58,10 @@ class Update(OrganisationMixin, UpdateView):
     def form_valid(self, form):
         messages.info(self.request, 'Organisation saved.')
         return super(Update, self).form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context_data = super(Update, self).get_context_data(**kwargs)
+        context_data.update({
+            'versions': reversion.get_for_object(self.object)
+        })
+        return context_data
