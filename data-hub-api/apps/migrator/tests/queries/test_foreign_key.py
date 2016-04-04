@@ -5,8 +5,8 @@ from cdms_api.tests.utils import mocked_cdms_create
 
 from migrator.exceptions import NotMappingFieldException
 
-from migrator.tests.queries.models import SimpleObj, ParentObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj, ParentObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 
 class BaseForeignKeyTestCase(BaseMockedCDMSApiTestCase):

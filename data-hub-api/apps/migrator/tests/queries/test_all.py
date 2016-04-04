@@ -2,8 +2,11 @@ import datetime
 
 from django.utils import timezone
 
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from reversion import revisions as reversion
+from reversion.models import Revision, Version
+
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 from cdms_api.tests.utils import mocked_cdms_list
 
@@ -17,9 +20,15 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
             - return local objs
 
         In this case:
-            - cdms-pk1 does not exist in local => local obj should get created
-            - cdms-pk2 is in sync with local obj => local obj should not change
-            - cdms-pk3 is more up-to-date than local => local obj should get updated
+            - cdms-pk1 does not exist in local =>
+                - local obj should get created
+                - revisions created
+            - cdms-pk2 is in sync with local obj =>
+                - local obj should not change
+                - no revisions should get created
+            - cdms-pk3 is more up-to-date than local =>
+                - local obj should get updated
+                - revisions created
         """
         obj2 = SimpleObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk2', name='name2', int_field=10
@@ -27,6 +36,7 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
         obj3 = SimpleObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk3', name='name3', int_field=20
         )
+        self.reset_revisions()
 
         mocked_list = [
             {
@@ -89,24 +99,48 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
 
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
 
+        # check versions
+        self.assertEqual(Version.objects.count(), 2)
+        self.assertEqual(Revision.objects.count(), 2)
+
+        # obj1
+        version_list_obj1 = reversion.get_for_object(obj1)
+        self.assertEqual(len(version_list_obj1), 1)
+        version = version_list_obj1[0]
+        version_data = version.field_dict
+        self.assertIsCDMSRefreshRevision(version.revision)
+        self.assertEqual(version_data['cdms_pk'], obj1.cdms_pk)
+        self.assertEqual(version_data['modified'], obj1.modified)
+        self.assertEqual(version_data['created'], obj1.created)
+
+        # obj3
+        version_list_obj3 = reversion.get_for_object(obj3)
+        self.assertEqual(len(version_list_obj3), 1)
+        version = version_list_obj3[0]
+        version_data = version.field_dict
+        self.assertIsCDMSRefreshRevision(version.revision)
+        self.assertEqual(version_data['cdms_pk'], obj3.cdms_pk)
+        self.assertEqual(version_data['modified'], obj3.modified)
+        self.assertEqual(version_data['created'], obj3.created)
+
     def test_exception(self):
         """
         In case of exceptions during cdms calls, the exception gets propagated.
+        No changes or revisions happen.
         """
         self.mocked_cdms_api.list.side_effect = Exception
-        SimpleObj.objects.skip_cdms().create(
-            cdms_pk='cdms-pk2', name='name2'
-        )
 
         self.assertRaises(
             Exception,
             list, SimpleObj.objects.all()
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_all_skip_cdms(self):
         """
-        Klass.objects.skip_cdms().all() should not hit cdms.
+        Klass.objects.skip_cdms().all() should not hit cdms and should not create any extra revisions.
         """
         list(SimpleObj.objects.skip_cdms().all())
         self.assertNoAPICalled()
+        self.assertNoRevisions()

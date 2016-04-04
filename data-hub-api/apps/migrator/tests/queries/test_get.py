@@ -3,10 +3,13 @@ import datetime
 from django.utils import timezone
 from django.core.exceptions import MultipleObjectsReturned
 
+from reversion import revisions as reversion
+from reversion.models import Revision, Version
+
 from cdms_api.exceptions import CDMSNotFoundException
 
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 from migrator.exceptions import ObjectsNotInSyncException
 
 from cdms_api.tests.utils import mocked_cdms_get
@@ -18,6 +21,7 @@ class BaseGetTestCase(BaseMockedCDMSApiTestCase):
         self.obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk', name='name'
         )
+        self.reset_revisions()
 
 
 class GetByIdTestCase(BaseGetTestCase):
@@ -32,6 +36,7 @@ class GetByIdTestCase(BaseGetTestCase):
             SimpleObj, kwargs={'guid': self.obj.cdms_pk}
         )
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
     def test_local_doesnt_exist(self):
         """
@@ -44,6 +49,7 @@ class GetByIdTestCase(BaseGetTestCase):
         )
 
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
 
 class GetByCmdPKTestCase(BaseGetTestCase):
@@ -51,6 +57,7 @@ class GetByCmdPKTestCase(BaseGetTestCase):
         """
         MyObject.objects.get(cdms_pk=..) when local obj exists,
         should hit the cdms api and return the local obj.
+        The operation does not create any revisions.
         """
         obj = SimpleObj.objects.get(cdms_pk=self.obj.cdms_pk)
         self.assertEqual(obj.pk, self.obj.pk)
@@ -59,11 +66,13 @@ class GetByCmdPKTestCase(BaseGetTestCase):
             SimpleObj, kwargs={'guid': self.obj.cdms_pk}
         )
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
     def test_local_doesnt_exist(self):
         """
         MyObject.objects.get(cdms_pk=..) when local obj does not exist,
         should hit the cdms api, create a local obj and return it.
+        The operation should create a revision.
         """
         modified_on = (timezone.now() + datetime.timedelta(days=1)).replace(microsecond=0)
         self.mocked_cdms_api.get.side_effect = mocked_cdms_get(
@@ -96,6 +105,19 @@ class GetByCmdPKTestCase(BaseGetTestCase):
         self.assertEqual(obj.name, 'new name')
         self.assertEqual(obj.modified, modified_on)
 
+        # check versions
+        self.assertEqual(Version.objects.count(), 1)
+        self.assertEqual(Revision.objects.count(), 1)
+
+        version_list_obj = reversion.get_for_object(obj)
+        self.assertEqual(len(version_list_obj), 1)
+        version = version_list_obj[0]
+        self.assertIsCDMSRefreshRevision(version.revision)
+        version_data = version.field_dict
+        self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)
+        self.assertEqual(version_data['modified'], obj.modified)
+        self.assertEqual(version_data['created'], obj.created)
+
     def test_neither_local_nor_cdms_obj_exists(self):
         """
         MyObject.objects.get(cdms_pk=..) when neither local nor cdms obj exists
@@ -116,6 +138,7 @@ class GetByCmdPKTestCase(BaseGetTestCase):
             SimpleObj, kwargs={'guid': 'cdms-pk'}
         )
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
 
 class GetByOtherFieldsTestCase(BaseGetTestCase):
@@ -130,10 +153,12 @@ class GetByOtherFieldsTestCase(BaseGetTestCase):
             SimpleObj, kwargs={'guid': self.obj.cdms_pk}
         )
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
     def test_multiple_objects_returned(self):
         SimpleObj.objects.skip_cdms().create(cdms_pk='cdms-pk1', name='name')
         SimpleObj.objects.skip_cdms().create(cdms_pk='cdms-pk2', name='name')
+        self.reset_revisions()
 
         self.assertRaises(
             MultipleObjectsReturned,
@@ -142,6 +167,7 @@ class GetByOtherFieldsTestCase(BaseGetTestCase):
         )
 
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
 
 class SyncGetTestCase(BaseGetTestCase):
@@ -151,6 +177,7 @@ class SyncGetTestCase(BaseGetTestCase):
             - get obj from local db
             - get cdms_obj from cdms
             - no local changes happen
+            - no extra revision created
         """
         self.mocked_cdms_api.get.side_effect = mocked_cdms_get(
             get_data={
@@ -166,11 +193,13 @@ class SyncGetTestCase(BaseGetTestCase):
         )
 
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
     def test_with_local_more_up_to_date(self):
         """
         If the local obj is more up to date, it means that the last syncronisation didn't
         work as it should have, so we raise ObjectsNotInSyncException.
+        The operation should not create any revisions.
         """
         modified_on = self.obj.modified - datetime.timedelta(seconds=0.001)
 
@@ -189,6 +218,7 @@ class SyncGetTestCase(BaseGetTestCase):
         )
 
         self.assertAPINotCalled(['list', 'update', 'delete', 'create'])
+        self.assertNoRevisions()
 
     def test_with_cdms_more_up_to_date(self):
         """
@@ -196,6 +226,7 @@ class SyncGetTestCase(BaseGetTestCase):
             - get obj from local db
             - get cdms_obj from cdms
             - update obj from cdms_obj
+            - create a revision
         """
         modified_on = self.obj.modified + datetime.timedelta(seconds=1)
         self.mocked_cdms_api.get.side_effect = mocked_cdms_get(
@@ -227,6 +258,19 @@ class SyncGetTestCase(BaseGetTestCase):
         self.assertEqual(obj.name, 'new name')
         self.assertEqual(obj.modified, modified_on)
 
+        # check versions
+        self.assertEqual(Version.objects.count(), 1)
+        self.assertEqual(Revision.objects.count(), 1)
+
+        version_list = reversion.get_for_object(obj)
+        self.assertEqual(len(version_list), 1)
+        version = version_list[0]
+        self.assertIsCDMSRefreshRevision(version.revision)
+        version_data = version.field_dict
+        self.assertEqual(version_data['cdms_pk'], obj.cdms_pk)
+        self.assertEqual(version_data['modified'], obj.modified)
+        self.assertEqual(version_data['created'], obj.created)
+
     def test_cdms_exception_triggers_exception(self):
         """
         If an exception happens when accessing cdms, the exception is propagated.
@@ -236,22 +280,25 @@ class SyncGetTestCase(BaseGetTestCase):
         self.assertRaises(
             Exception, SimpleObj.objects.get, pk=self.obj.pk
         )
+        self.assertNoRevisions()
 
 
 class GetSkipCDMSTestCase(BaseGetTestCase):
     def test_get_by_any_fields(self):
         """
-        Klass.objects.skip_cdms().get(...) should not hit cdms.
+        Klass.objects.skip_cdms().get(...) should not hit cdms and should not create any revisions.
         """
         SimpleObj.objects.skip_cdms().get(pk=self.obj.pk)
         self.assertNoAPICalled()
 
         SimpleObj.objects.skip_cdms().get(cdms_pk=self.obj.cdms_pk)
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_object_not_found(self):
         """
-        Klass.objects.skip_cdms().get(...) should raise DoesNotExist and not hit cdms.
+        Klass.objects.skip_cdms().get(...) should raise DoesNotExist, should not hit cdms
+        and should not create any revisions.
         """
         self.assertRaises(
             SimpleObj.DoesNotExist,
@@ -259,3 +306,4 @@ class GetSkipCDMSTestCase(BaseGetTestCase):
             cdms_pk='invalid'
         )
         self.assertNoAPICalled()
+        self.assertNoRevisions()

@@ -2,8 +2,8 @@ import datetime
 
 from django.db.models import Q
 
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 
 class FilterTestCase(BaseMockedCDMSApiTestCase):
@@ -14,6 +14,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "Name eq 'something'"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_q_one_field(self):
         list(SimpleObj.objects.filter(Q(name='something')))
@@ -22,6 +23,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "Name eq 'something'"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields(self):
         list(SimpleObj.objects.filter(name='something', int_field=1))
@@ -30,6 +32,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "(IntField eq 1 and Name eq 'something')"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_q_two_fields_in_and(self):
         list(SimpleObj.objects.filter(Q(name='something') & Q(int_field=10)))
@@ -38,6 +41,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "(IntField eq 10 and Name eq 'something')"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields_in_chain(self):
         list(SimpleObj.objects.filter(name='something').filter(int_field=1))
@@ -46,6 +50,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "(IntField eq 1 and Name eq 'something')"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields_in_or(self):
         list(SimpleObj.objects.filter(Q(name='something') | Q(int_field=1)))
@@ -55,6 +60,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
         )
 
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_q_fields_in_and_in_group(self):
         dt = datetime.datetime(2016, 1, 1).replace(tzinfo=datetime.timezone.utc)
@@ -71,6 +77,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_q_fields_in_and__or_in_group(self):
         dt = datetime.datetime(2016, 1, 1).replace(tzinfo=datetime.timezone.utc)
@@ -87,6 +94,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
 
 class FilterSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
@@ -96,6 +104,7 @@ class FilterSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         """
         list(SimpleObj.objects.skip_cdms().filter(name='something'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
 
 class ExcludeTestCase(BaseMockedCDMSApiTestCase):
@@ -106,6 +115,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "not (Name eq 'something')"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields(self):
         list(SimpleObj.objects.exclude(name='something', int_field=1))
@@ -114,6 +124,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "not (IntField eq 1 and Name eq 'something')"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields_in_chain(self):
         list(SimpleObj.objects.exclude(name='something').exclude(int_field=1))
@@ -122,6 +133,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "(not (IntField eq 1) and not (Name eq 'something'))"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_two_fields_in_or(self):
         list(SimpleObj.objects.exclude(Q(name='something') | Q(int_field=1)))
@@ -130,6 +142,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "not ((IntField eq 1 or Name eq 'something'))"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_simple_filter_exclude(self):
         list(SimpleObj.objects.filter(name='something').exclude(int_field=1))
@@ -138,6 +151,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             SimpleObj, kwargs={'filters': "(Name eq 'something' and not (IntField eq 1))"}
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
     def test_complex_filter_exclude(self):
         list(
@@ -155,6 +169,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+        self.assertNoRevisions()
 
 
 class ExcludeSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
@@ -164,3 +179,4 @@ class ExcludeSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
     def test_exclude(self):
         list(SimpleObj.objects.skip_cdms().exclude(name='something'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()

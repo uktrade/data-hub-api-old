@@ -1,4 +1,6 @@
 from django.db import models
+from reversion import revisions as reversion
+
 from migrator.models import CDMSModel
 from migrator.managers import CDMSManager
 from migrator.cdms_migrator import BaseCDMSMigrator
@@ -19,6 +21,7 @@ class ParentObjMigrator(BaseCDMSMigrator):
     service = 'Parent'
 
 
+@reversion.register()
 class ParentObj(CDMSModel):
     name = models.CharField(max_length=250)
 
@@ -39,6 +42,7 @@ class SimpleMigrator(BaseCDMSMigrator):
     service = 'Simple'
 
 
+@reversion.register()
 class SimpleObj(CDMSModel):
     name = models.CharField(max_length=250)
     dt_field = models.DateTimeField(null=True)

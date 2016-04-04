@@ -1,5 +1,7 @@
 from migrator.models import CDMSModel
 
+from reversion import revisions as reversion
+
 
 class CRMBaseModel(CDMSModel):
     """
@@ -11,3 +13,7 @@ class CRMBaseModel(CDMSModel):
     """
     class Meta:
         abstract = True
+
+    @reversion.create_revision()
+    def save(self, *args, **kwargs):
+        return super(CRMBaseModel, self).save(*args, **kwargs)

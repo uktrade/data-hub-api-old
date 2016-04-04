@@ -2,8 +2,8 @@ from unittest import skip
 
 from django.utils import timezone
 
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 
 class FilterLookupsTestCase(BaseMockedCDMSApiTestCase):

@@ -1,5 +1,5 @@
-from migrator.tests.queries.models import SimpleObj
-from migrator.tests.queries.base import BaseMockedCDMSApiTestCase
+from migrator.tests.models import SimpleObj
+from migrator.tests.base import BaseMockedCDMSApiTestCase
 
 
 class OrderByTestCase(BaseMockedCDMSApiTestCase):
@@ -17,6 +17,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_by_name_asc(self):
         """
@@ -34,6 +35,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_by_name_desc(self):
         """
@@ -51,6 +53,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_by_two_fields(self):
         """
@@ -69,6 +72,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_by_non_cdms_field(self):
         """
@@ -82,6 +86,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
         )
 
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_randomly(self):
         """
@@ -94,6 +99,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
         )
 
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
     def test_order_by_related_obj_field(self):
         """
@@ -109,6 +115,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
             }
         )
         self.assertAPINotCalled(['get', 'create', 'delete', 'update'])
+        self.assertNoRevisions()
 
 
 class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
@@ -118,6 +125,7 @@ class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         """
         list(SimpleObj.objects.skip_cdms().all())
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_order_by_name(self):
         """
@@ -125,6 +133,7 @@ class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         """
         list(SimpleObj.objects.skip_cdms().all().order_by('name'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_order_by_two_fields(self):
         """
@@ -132,6 +141,7 @@ class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         """
         list(SimpleObj.objects.skip_cdms().all().order_by('modified', '-name'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_order_randomly(self):
         """
@@ -139,7 +149,9 @@ class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         """
         list(SimpleObj.objects.skip_cdms().all().order_by('?'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()
 
     def test_order_by_related_obj_field(self):
         list(SimpleObj.objects.skip_cdms().all().order_by('fk_obj'))
         self.assertNoAPICalled()
+        self.assertNoRevisions()
