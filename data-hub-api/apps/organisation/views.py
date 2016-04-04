@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, UpdateView
 
@@ -21,7 +22,7 @@ class Index(OrganisationMixin, ListView):
         if not q:
             return self.model.objects.none()
 
-        return self.model.objects.filter(name__contains=q)
+        return self.model.objects.filter(name__icontains=q)
 
     def get_context_data(self, **kwargs):
         context_data = super(Index, self).get_context_data(**kwargs)
@@ -38,6 +39,10 @@ class Create(OrganisationMixin, CreateView):
         'email_address', 'sector'
     ]
 
+    def form_valid(self, form):
+        messages.info(self.request, 'Organisation saved.')
+        return super(Update, self).form_valid(form)
+
 
 class Update(OrganisationMixin, UpdateView):
     fields = [
@@ -47,3 +52,7 @@ class Update(OrganisationMixin, UpdateView):
         'country_code', 'area_code', 'phone_number',
         'email_address', 'sector'
     ]
+
+    def form_valid(self, form):
+        messages.info(self.request, 'Organisation saved.')
+        return super(Update, self).form_valid(form)
