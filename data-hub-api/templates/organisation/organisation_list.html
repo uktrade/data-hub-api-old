@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <a href="{% url 'organisation:create' %}">Create</a>
+
+  <div class="">
+    <h2>Search</h2>
+    <div>
+      <form action="." method="get">
+        <input type="text" name="q" value="{{ q|default:'' }}">
+        <input type="submit" name="search" value="search">
+      </form>
+    </div>
+
+    {% if organisations %}
+    <div>
+      <ul>
+        {% for org in organisations %}
+          <li>
+            <a href="{% url 'organisation:update' org.pk %}">{{org.name}}</a> - {{ org.alias }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% elif q %}
+    <p>
+      Nothing found
+    </p>
+    {% endif %}
+  </div>
+{% endblock %}

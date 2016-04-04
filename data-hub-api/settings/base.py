@@ -31,7 +31,9 @@ INSTALLED_APPS = [
     'reversion'
 ]
 
-PROJECT_APPS = []
+PROJECT_APPS = [
+    'organisation'
+]
 
 INSTALLED_APPS += PROJECT_APPS
 
