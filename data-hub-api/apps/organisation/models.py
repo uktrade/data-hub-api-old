@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 
+from reversion import revisions as reversion
+
 from core.models import CRMBaseModel
 from core.managers import CRMManager
 from core.fields import UKTIForeignKey
@@ -21,6 +23,7 @@ SECTOR_CHOICES = (
 )
 
 
+@reversion.register()
 class Organisation(CRMBaseModel):
     name = models.CharField(max_length=255)
     alias = models.CharField(max_length=255, blank=True)
@@ -60,6 +63,7 @@ class Organisation(CRMBaseModel):
         return reverse('organisation:update', args=[str(self.id)])
 
 
+@reversion.register()
 class Contact(CRMBaseModel):
     organisation = UKTIForeignKey(Organisation)
     first_name = models.CharField(max_length=255)
