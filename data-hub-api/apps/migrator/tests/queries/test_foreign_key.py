@@ -15,6 +15,7 @@ class BaseForeignKeyTestCase(BaseMockedCDMSApiTestCase):
         self.parent_obj = ParentObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk', name='name'
         )
+        self.adjust_modified_field(self.parent_obj, self.mocked_modified)
 
 
 class GetFromParentTestCase(BaseForeignKeyTestCase):
@@ -77,6 +78,7 @@ class GetFromParentTestCase(BaseForeignKeyTestCase):
         self.simple_obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='simple-obj', fk_obj=self.parent_obj
         )
+        self.adjust_modified_field(self.simple_obj, self.mocked_modified)
 
         self.assertRaises(
             NotMappingFieldException,
@@ -92,6 +94,7 @@ class GetFromParentTestCase(BaseForeignKeyTestCase):
         self.simple_obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='simple-obj', fk_obj=self.parent_obj
         )
+        self.adjust_modified_field(self.simple_obj, self.mocked_modified)
 
         list(ParentObj.objects.skip_cdms().filter(simpleobj=self.simple_obj))
         self.assertNoAPICalled()
@@ -157,6 +160,7 @@ class GetParentFromChildTestCase(BaseForeignKeyTestCase):
         self.simple_obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='simple-obj', fk_obj=self.parent_obj
         )
+        self.adjust_modified_field(self.simple_obj, self.mocked_modified)
 
         obj = SimpleObj.objects.get(pk=self.simple_obj.pk)
 
@@ -181,6 +185,7 @@ class GetParentFromChildTestCase(BaseForeignKeyTestCase):
         self.simple_obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='simple-obj', fk_obj=None
         )
+        self.adjust_modified_field(self.simple_obj, self.mocked_modified)
 
         obj = SimpleObj.objects.get(pk=self.simple_obj.pk)
 

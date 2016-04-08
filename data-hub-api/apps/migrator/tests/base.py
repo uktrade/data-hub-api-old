@@ -1,5 +1,7 @@
+import datetime
 from unittest import mock
 
+from django.utils import timezone
 from django.test.testcases import TransactionTestCase
 
 from reversion.models import Revision, Version
@@ -12,11 +14,25 @@ from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdm
 class BaseMockedCDMSApiTestCase(TransactionTestCase):
     @mock.patch('migrator.query.cdms_conn')
     def __call__(self, result, mocked_cdms_api, *args, **kwargs):
+        # mocking the modified value so that the tests don't depend on the automatic 'now' datetime value
+        # and therefore we can catch all hidden problems.
+        self.mocked_modified = (timezone.now() + datetime.timedelta(minutes=1)).replace(microsecond=0)
+
         mocked_cdms_api.create.side_effect = mocked_cdms_create()
-        mocked_cdms_api.get.side_effect = mocked_cdms_get()
+        mocked_cdms_api.get.side_effect = mocked_cdms_get(get_data={
+            'ModifiedOn': self.mocked_modified
+        })
         mocked_cdms_api.update.side_effect = mocked_cdms_update()
+
         self.mocked_cdms_api = mocked_cdms_api
         super(BaseMockedCDMSApiTestCase, self).__call__(result, *args, **kwargs)
+
+    def adjust_modified_field(self, obj, modified):
+        """
+        Sets the obj.modified to 'modified' without calling cdms.
+        """
+        obj.__class__.objects.skip_cdms().filter(pk=obj.pk).update(modified=modified)
+        obj.modified = modified
 
     def assertAPICalled(self, model, verb, kwargs, tot=1):
         if tot == 1:
