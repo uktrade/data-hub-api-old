@@ -1,0 +1,5 @@
+[flake8]
+exclude = .git/,*/migrations/,venv/,env/
+max-complexity = 15
+max-line-length = 119
+ignore = N801,N802,N806

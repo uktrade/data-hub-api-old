@@ -226,7 +226,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
             index = 0
 
             def wrapper(request):
-                nonlocal index  # :-$
+                nonlocal index  # flake8: noqa
                 status_code = 200 if index else 401
                 index += 1
                 return (status_code, [], json.dumps({'d': body_response}))
