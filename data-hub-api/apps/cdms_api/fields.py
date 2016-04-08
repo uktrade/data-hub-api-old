@@ -47,7 +47,7 @@ class DateTimeField(BaseField):
 
 class IdRefField(BaseField):
     """
-    This field only saves takes as input and gives as output an Id.
+    This field only takes as input and gives as output an Id.
     It's less useful to use it directly and more likely to be subclassed by other fields.
     """
     def to_cdms_value(self, value):

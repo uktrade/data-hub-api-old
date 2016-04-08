@@ -16,10 +16,11 @@ class UnexpectedResponseException(RequestException):
     Used when there's an unexpected response.
     The message will have the status_code and the content will be the response body.
     """
-    def __init__(self, message, content=None):
+    def __init__(self, message, content=None, status_code=None):
         super(UnexpectedResponseException, self).__init__(message)
         self.message = message
         self.content = content
+        self.status_code = status_code
 
 
 # all api related exceptions extend CDMSException

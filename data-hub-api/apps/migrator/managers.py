@@ -100,12 +100,6 @@ class CDMSQuerySet(models.QuerySet):
                 assert self.query.can_filter(), \
                     "Cannot filter a query once a slice has been taken."
 
-            if not args and not kwargs:
-                if not self.query.has_filters():
-                    raise NotImplementedError(
-                        'Cannot yet get all objects, not implemented yet'
-                    )
-
             q = Q(*args, **kwargs)
 
             if not self._is_q_pk_only(q):

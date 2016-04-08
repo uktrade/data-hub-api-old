@@ -82,7 +82,8 @@ class CDMSApi(object):
         if not resp.ok:
             raise UnexpectedResponseException(
                 '{} for status code {}'.format(url, resp.status_code),
-                content=resp.content
+                content=resp.content,
+                status_code=resp.status_code
             )
 
         # check response, if form action of source == form action of response => error page
@@ -106,7 +107,8 @@ class CDMSApi(object):
         if not resp.ok:
             raise UnexpectedResponseException(
                 '{} for status code {}'.format(url, resp.status_code),
-                content=resp.content
+                content=resp.content,
+                status_code=resp.status_code
             )
 
         html_parser = PyQuery(resp.content)

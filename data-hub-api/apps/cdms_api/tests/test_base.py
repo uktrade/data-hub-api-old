@@ -93,7 +93,7 @@ class MockedResponseMixin(object):
         """
         Mocks an auth form for the step x based on the 'LOGIN_STEPS' param.
         """
-        assert step >= 1
+        assert step >= 1, 'Use mock_initial_login instead'
         if errors:
             step_url, step_template_name = self.LOGIN_STEPS[step - 1]
             next_url = step_url

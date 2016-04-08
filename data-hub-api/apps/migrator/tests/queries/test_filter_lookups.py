@@ -1,4 +1,4 @@
-from unittest import skip
+from unittest import skip, mock
 
 from django.utils import timezone
 
@@ -207,3 +207,39 @@ class FilterLookupsTestCase(BaseMockedCDMSApiTestCase):
             list, SimpleObj.objects.filter(name__iregex=r'.*')
         )
         self.assertAPINotCalled(['create', 'update', 'delete', 'get'])
+
+    def test_only_one_lookup_allowed(self):
+        self.assertRaises(
+            NotImplementedError,
+            SimpleObj.objects.filter, dt_field__year__gt=2016
+        )
+        self.assertNoAPICalled()
+
+
+class FilterInvalidValuesForLookupsTestCase(BaseMockedCDMSApiTestCase):
+    def test_resolve_expression(self):
+        from django.db.models.query_utils import Q
+
+        self.assertRaises(
+            NotImplementedError,
+            SimpleObj.objects.filter, name=mock.Mock(spec=Q)
+        )
+
+    def test_query_bump_prefix(self):
+        from django.db.models.query import QuerySet
+        from django.db.models.sql.query import Query
+
+        self.assertRaises(
+            NotImplementedError,
+            SimpleObj.objects.filter, name=QuerySet(
+                query=mock.MagicMock(spec=Query)
+            )
+        )
+
+    def test_bump_prefix(self):
+        from django.db.models.sql.query import Query
+
+        self.assertRaises(
+            NotImplementedError,
+            SimpleObj.objects.filter, name=mock.MagicMock(spec=Query)
+        )
