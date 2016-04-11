@@ -56,7 +56,6 @@ venv
 *.iws
 
 data-hub-api/settings/local.py
-data-hub-api/settings/production.py
 
 # collect static output directory
 data-hub-api/assets/

@@ -136,6 +136,7 @@ CDMS_ADFS_URL = ''
 CDMS_BASE_URL = ''
 CDMS_USERNAME = ''
 CDMS_PASSWORD = ''
+CDMS_COOKIE_KEY = b''
 
 
 # .local.py overrides all the common settings.
