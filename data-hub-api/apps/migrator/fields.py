@@ -4,7 +4,7 @@ from django.db.models.fields.related_descriptors import ReverseManyToOneDescript
     create_reverse_many_to_one_manager
 
 
-def create_reverse_cdms_many_to_one_manager(superclass, rel):
+def create_reverse_cdms_many_to_one_manager(superclass, rel):  # flake8: noqa
     subclass = create_reverse_many_to_one_manager(
         superclass, rel
     )

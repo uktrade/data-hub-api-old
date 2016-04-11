@@ -251,7 +251,7 @@ class CDMSQuery(object):
                     (lookup, self.model.__name__))
         return lookup_parts, field_parts, False
 
-    def names_to_path(self, names, opts, fail_on_missing=False):
+    def names_to_path(self, names, opts, fail_on_missing=False):  # flake8: noqa
         path = []
         for pos, name in enumerate(names):
             if name == 'pk':
