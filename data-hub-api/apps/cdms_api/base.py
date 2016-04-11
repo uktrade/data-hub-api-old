@@ -68,6 +68,12 @@ class CDMSApi(object):
         self.session = session
 
     def _submit_form(self, session, source, url=None, params={}):
+        """
+        It submits the form contained in the `source` param optionally overriding form `params` and form `url`.
+
+        This is needed as UKTI has a few STSes and the token has to be validated by all of them.
+        For more details, check: https://msdn.microsoft.com/en-us/library/aa480563.aspx
+        """
         html_parser = PyQuery(source)
         form_action = html_parser('form').attr('action')
 
@@ -99,9 +105,21 @@ class CDMSApi(object):
         return resp
 
     def login(self):
+        """
+        This goes through the following steps:
+
+        1. get login page
+        2. submit the form with username and password
+        3. the result is a form with a security token issued by the STS and the url of the next STS
+            to validate the token
+        4. submit the form of step 3. without making any changes
+        5. repeat step 3. and 4 one more time to get the valid authentication cookie
+
+        For more details, check: https://msdn.microsoft.com/en-us/library/aa480563.aspx
+        """
         session = requests.session()
 
-        # login form
+        # 1. get login page
         url = '{}/?whr={}'.format(settings.CDMS_BASE_URL, settings.CDMS_ADFS_URL)
         resp = session.get(url)
         if not resp.ok:
@@ -115,7 +133,7 @@ class CDMSApi(object):
         username_field_name = html_parser('input[name*=Username]')[0].name
         password_field_name = html_parser('input[name*=Password]')[0].name
 
-        # first submit
+        # 2. submit the login form with username and password
         resp = self._submit_form(
             session, resp.content,
             url=resp.url,
@@ -125,10 +143,10 @@ class CDMSApi(object):
             }
         )
 
-        # second submit
+        # 3. and 4. re-submit the resulting form containing the security token so that the next STS can validate it
         resp = self._submit_form(session, resp.content)
 
-        # third submit
+        # 5. re-submit the form again to validate the token and get as result the authenticated cookie
         self._submit_form(session, resp.content)
         return session
 
