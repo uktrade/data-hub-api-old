@@ -5,34 +5,44 @@ import os
 import logging
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.text import slugify
 
 from pyquery import PyQuery
 
-from .exceptions import CDMSException, CDMSUnauthorizedException, CDMSNotFoundException
-
-CRM_BASE_URL = settings.CDMS_BASE_URL
+from .exceptions import CDMSException, CDMSUnauthorizedException, CDMSNotFoundException, \
+    LoginErrorException, UnexpectedResponseException
 
 COOKIE_FILE = '/tmp/cdms_cookie_{slug}.tmp'.format(
-    slug=slugify(CRM_BASE_URL)
+    slug=slugify(settings.CDMS_BASE_URL)
 )
 
 logger = logging.getLogger('cmds_api')
 
 
+def cookie_exists():
+    return os.path.exists(COOKIE_FILE)
+
+
+def delete_cookie():
+    if cookie_exists():
+        os.remove(COOKIE_FILE)
+
+
 class CDMSApi(object):
-    CRM_BASE_URL = settings.CDMS_BASE_URL
-    CRM_ADFS_URL = settings.CDMS_ADFS_URL
-    CRM_REST_BASE_URL = '%s/XRMServices/2011/OrganizationData.svc' % CRM_BASE_URL
+    CRM_REST_BASE_URL = '%s/XRMServices/2011/OrganizationData.svc' % settings.CDMS_BASE_URL
 
     EXCEPTIONS_MAP = {
         401: CDMSUnauthorizedException,
         404: CDMSNotFoundException
     }
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self):
+        if not settings.CDMS_ADFS_URL or not settings.CDMS_ADFS_URL:
+            raise ImproperlyConfigured('Please set CDMS_ADFS_URL and CDMS_ADFS_URL in your settings.')
+        if not settings.CDMS_USERNAME or not settings.CDMS_PASSWORD:
+            raise ImproperlyConfigured('Please set CDMS_USERNAME and CDMS_PASSWORD in your settings.')
+
         self.setup_session()
 
     def setup_session(self, force=False):
@@ -40,10 +50,10 @@ class CDMSApi(object):
         So that we don't login every time during dev, we save the cookie
         in a file and load it afterwards.
         """
-        if force and os.path.exists(COOKIE_FILE):
-            os.remove(COOKIE_FILE)
+        if force and cookie_exists():
+            delete_cookie()
 
-        if not os.path.exists(COOKIE_FILE):
+        if not cookie_exists():
             session = self.login()
             with open(COOKIE_FILE, 'wb') as f:
                 pickle.dump(session.cookies._cookies, f)
@@ -57,55 +67,87 @@ class CDMSApi(object):
 
         self.session = session
 
+    def _submit_form(self, session, source, url=None, params={}):
+        """
+        It submits the form contained in the `source` param optionally overriding form `params` and form `url`.
+
+        This is needed as UKTI has a few STSes and the token has to be validated by all of them.
+        For more details, check: https://msdn.microsoft.com/en-us/library/aa480563.aspx
+        """
+        html_parser = PyQuery(source)
+        form_action = html_parser('form').attr('action')
+
+        # get all inputs in the source + optional params passed in
+        data = {field.get('name'): field.get('value') for field in html_parser('input')}
+        data.update(params)
+
+        url = url or form_action
+        resp = session.post(url, data)
+
+        # check status code
+        if not resp.ok:
+            raise UnexpectedResponseException(
+                '{} for status code {}'.format(url, resp.status_code),
+                content=resp.content,
+                status_code=resp.status_code
+            )
+
+        # check response, if form action of source == form action of response => error page
+        html_parser = PyQuery(resp.content)
+
+        if form_action == html_parser('form').attr('action'):
+            error_els = html_parser('[id$=ErrorTextLabel]')
+            if error_els:
+                raise LoginErrorException(', '.join([error_el.text for error_el in error_els]))
+            raise UnexpectedResponseException(  # we don't know exactly what happened...
+                'Unexpected Response.', content=resp.content
+            )
+        return resp
+
     def login(self):
+        """
+        This goes through the following steps:
+
+        1. get login page
+        2. submit the form with username and password
+        3. the result is a form with a security token issued by the STS and the url of the next STS
+            to validate the token
+        4. submit the form of step 3. without making any changes
+        5. repeat step 3. and 4 one more time to get the valid authentication cookie
+
+        For more details, check: https://msdn.microsoft.com/en-us/library/aa480563.aspx
+        """
         session = requests.session()
 
-        # login form
-        login_form_response = session.get(
-            '{base}/?whr={adfs}'.format(
-                base=self.CRM_BASE_URL,
-                adfs=self.CRM_ADFS_URL
-            ),
-            verify=False
-        )
+        # 1. get login page
+        url = '{}/?whr={}'.format(settings.CDMS_BASE_URL, settings.CDMS_ADFS_URL)
+        resp = session.get(url)
+        if not resp.ok:
+            raise UnexpectedResponseException(
+                '{} for status code {}'.format(url, resp.status_code),
+                content=resp.content,
+                status_code=resp.status_code
+            )
 
-        html_parser = PyQuery(login_form_response.content)
+        html_parser = PyQuery(resp.content)
         username_field_name = html_parser('input[name*=Username]')[0].name
         password_field_name = html_parser('input[name*=Password]')[0].name
-        submit_field = html_parser('input[name*=Submit]')[0]
-        login_data = {
-            field.name: field.value for field in html_parser('[type=hidden]')
-        }
 
-        login_data.update({
-            username_field_name: self.username,
-            password_field_name: self.password,
-            submit_field.name: submit_field.value
-        })
-
-        # first submit
-        login_resp = session.post(login_form_response.url, login_data)
-
-        # second submit
-        html_parser = PyQuery(login_resp.content)
-        confirm_url = html_parser('form').attr('action')
-
-        resp = session.post(
-            confirm_url, {
-                field.get('name'): field.get('value') for field in html_parser('input')
+        # 2. submit the login form with username and password
+        resp = self._submit_form(
+            session, resp.content,
+            url=resp.url,
+            params={
+                username_field_name: settings.CDMS_USERNAME,
+                password_field_name: settings.CDMS_PASSWORD,
             }
         )
 
-        # third submit
-        html_parser = PyQuery(resp.content)
-        confirm_url = html_parser('form').attr('action')
+        # 3. and 4. re-submit the resulting form containing the security token so that the next STS can validate it
+        resp = self._submit_form(session, resp.content)
 
-        resp = session.post(
-            confirm_url, {
-                field.get('name'): field.get('value') for field in html_parser('input')
-            },
-            verify=False
-        )
+        # 5. re-submit the form again to validate the token and get as result the authenticated cookie
+        self._submit_form(session, resp.content)
         return session
 
     def make_request(self, verb, url, data={}):
@@ -126,7 +168,7 @@ class CDMSApi(object):
 
         if data:
             data = json.dumps(data)
-        resp = getattr(self.session, verb)(url, data=data, headers=headers, verify=False)
+        resp = getattr(self.session, verb)(url, data=data, headers=headers)
 
         if resp.status_code >= 400:
             logger.debug('Got CDMS error (%s): %s' % (resp.status_code, resp.content))
@@ -160,7 +202,7 @@ class CDMSApi(object):
             service=service,
             top=top,
             skip=skip,
-            params='&'.join([u'%s=%s' % (k, v) for k, v in params.items()])
+            params='&'.join(sorted([u'%s=%s' % (k, v) for k, v in params.items()]))
         )
 
         results = self.make_request('get', url)

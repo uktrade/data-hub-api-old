@@ -173,6 +173,19 @@ class CreateWithManagerTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoAPICalled()
         self.assertNoRevisions()
 
+    def test_with_bulk_create_private(self):
+        """
+        bulk_create() using the private django method.
+        """
+        self.assertRaises(
+            NotImplementedError,
+            SimpleObj.objects._insert,
+            [
+                SimpleObj(id=1000, name='simple obj1'),
+                SimpleObj(id=1001, name='simple obj2')
+            ], SimpleObj._meta.fields
+        )
+
 
 class CreateWithSaveSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
     def test_success(self):
@@ -228,3 +241,9 @@ class CreateWithManagerSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
 
         self.assertNoAPICalled()
         self.assertNoRevisions()  # no revisions as this is a low level call without signals
+
+    def test_create_without_objects(self):
+        self.assertEqual(
+            SimpleObj.objects.skip_cdms()._batched_insert([], None, None),
+            None
+        )

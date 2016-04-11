@@ -123,6 +123,15 @@ class AllTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(version_data['modified'], obj3.modified)
         self.assertEqual(version_data['created'], obj3.created)
 
+    def test_filter_all(self):
+        """
+        Klass.objects.filter() should work as Klass.objects.all().
+        """
+        self.mocked_cdms_api.list.return_value = []
+
+        results = list(SimpleObj.objects.filter())
+        self.assertEqual(results, [])
+
     def test_exception(self):
         """
         In case of exceptions during cdms calls, the exception gets propagated.

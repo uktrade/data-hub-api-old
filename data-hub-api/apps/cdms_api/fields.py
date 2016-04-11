@@ -46,6 +46,10 @@ class DateTimeField(BaseField):
 
 
 class IdRefField(BaseField):
+    """
+    This field only takes as input and gives as output an Id.
+    It's less useful to use it directly and more likely to be subclassed by other fields.
+    """
     def to_cdms_value(self, value):
         if not value:
             return value
@@ -58,6 +62,10 @@ class IdRefField(BaseField):
 
 
 class ForeignKeyField(IdRefField):
+    """
+    Used for foreign keys.
+    It requires a fk_model param being a django model with a `model_cdms_pk_field` field for storing the cdms id.
+    """
     model_cdms_pk_field = 'cdms_pk'
 
     def __init__(self, cdms_name, fk_model):

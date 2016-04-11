@@ -21,6 +21,8 @@ class BaseGetTestCase(BaseMockedCDMSApiTestCase):
         self.obj = SimpleObj.objects.skip_cdms().create(
             cdms_pk='cdms-pk', name='name'
         )
+        self.adjust_modified_field(self.obj, self.mocked_modified)
+
         self.reset_revisions()
 
 

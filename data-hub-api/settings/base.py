@@ -4,7 +4,7 @@ import sys
 # PATH vars
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-root = lambda *x: os.path.join(BASE_DIR, *x)
+root = lambda *x: os.path.join(BASE_DIR, *x)  # flake8: noqa
 
 sys.path.insert(0, root('apps'))
 
