@@ -1,32 +1,18 @@
 import json
 import requests
-import pickle
-import os
 import logging
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.text import slugify
 
 from pyquery import PyQuery
 
 from .exceptions import CDMSException, CDMSUnauthorizedException, CDMSNotFoundException, \
     LoginErrorException, UnexpectedResponseException
+from .cookie_storage import CookieStorage
 
-COOKIE_FILE = '/tmp/cdms_cookie_{slug}.tmp'.format(
-    slug=slugify(settings.CDMS_BASE_URL)
-)
 
 logger = logging.getLogger('cmds_api')
-
-
-def cookie_exists():
-    return os.path.exists(COOKIE_FILE)
-
-
-def delete_cookie():
-    if cookie_exists():
-        os.remove(COOKIE_FILE)
 
 
 class CDMSApi(object):
@@ -38,34 +24,31 @@ class CDMSApi(object):
     }
 
     def __init__(self):
-        if not settings.CDMS_ADFS_URL or not settings.CDMS_ADFS_URL:
-            raise ImproperlyConfigured('Please set CDMS_ADFS_URL and CDMS_ADFS_URL in your settings.')
+        if not settings.CDMS_BASE_URL or not settings.CDMS_ADFS_URL:
+            raise ImproperlyConfigured('Please set CDMS_BASE_URL and CDMS_ADFS_URL in your settings.')
         if not settings.CDMS_USERNAME or not settings.CDMS_PASSWORD:
             raise ImproperlyConfigured('Please set CDMS_USERNAME and CDMS_PASSWORD in your settings.')
 
+        self.cookie_storage = CookieStorage()
         self.setup_session()
 
     def setup_session(self, force=False):
         """
-        So that we don't login every time during dev, we save the cookie
-        in a file and load it afterwards.
+        So that we don't login every time, we save the cookie and load it afterwards.
         """
-        if force and cookie_exists():
-            delete_cookie()
+        if force:
+            self.cookie_storage.reset()
 
-        if not cookie_exists():
-            session = self.login()
-            with open(COOKIE_FILE, 'wb') as f:
-                pickle.dump(session.cookies._cookies, f)
-
-        with open(COOKIE_FILE, 'rb') as f:
-            cookies = pickle.load(f)
+        cookie = self.cookie_storage.read()
+        if cookie:
             session = requests.session()
             jar = requests.cookies.RequestsCookieJar()
-            jar._cookies = cookies
+            jar._cookies = cookie
             session.cookies = jar
-
-        self.session = session
+            self.session = session
+        else:
+            self.session = self.login()
+            self.cookie_storage.write(self.session.cookies._cookies)
 
     def _submit_form(self, session, source, url=None, params={}):
         """

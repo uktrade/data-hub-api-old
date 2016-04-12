@@ -12,7 +12,7 @@ from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdm
 
 
 class BaseMockedCDMSApiTestCase(TransactionTestCase):
-    @mock.patch('migrator.query.cdms_conn')
+    @mock.patch('migrator.query.cdms_connection')
     def __call__(self, result, mocked_cdms_api, *args, **kwargs):
         # mocking the modified value so that the tests don't depend on the automatic 'now' datetime value
         # and therefore we can catch all hidden problems.

@@ -11,7 +11,7 @@ from django.core.exceptions import FieldDoesNotExist, FieldError
 
 from reversion import revisions as reversion
 
-from cdms_api import api as cdms_conn
+from cdms_api.connection import api as cdms_connection
 
 from .models import CDMSModel
 from .exceptions import NotMappingFieldException
@@ -72,7 +72,7 @@ class CDMSSelectCompiler(CDMSCompiler):
         if self.query.empty:
             return []
 
-        return cdms_conn.list(
+        return cdms_connection.list(
             self.get_service(),
             filters=self.get_filters(),
             order_by=self.get_order_by()
@@ -82,7 +82,7 @@ class CDMSSelectCompiler(CDMSCompiler):
 class CDMSInsertCompiler(CDMSCompiler):
     def execute(self):
         data = self.get_migrator().clean_up_cdms_data_before_changes(self.query.cdms_data)
-        results = cdms_conn.create(
+        results = cdms_connection.create(
             self.get_service(), data=data
         )
         return (
@@ -93,7 +93,7 @@ class CDMSInsertCompiler(CDMSCompiler):
 
 class CDMSGetCompiler(CDMSCompiler):
     def execute(self):
-        return cdms_conn.get(
+        return cdms_connection.get(
             self.get_service(),
             guid=self.query.cdms_pk
         )
@@ -102,7 +102,7 @@ class CDMSGetCompiler(CDMSCompiler):
 class CDMSUpdateCompiler(CDMSCompiler):
     def execute(self):
         data = self.get_migrator().clean_up_cdms_data_before_changes(self.query.cdms_data)
-        results = cdms_conn.update(
+        results = cdms_connection.update(
             self.get_service(),
             guid=self.query.cdms_pk,
             data=data
@@ -165,7 +165,7 @@ class CDMSRefreshCompiler(CDMSGetCompiler):
 
 class CDMSDeleteCompiler(CDMSGetCompiler):
     def execute(self):
-        return cdms_conn.delete(
+        return cdms_connection.delete(
             self.get_service(),
             guid=self.query.cdms_pk
         )

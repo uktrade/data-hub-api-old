@@ -9,7 +9,8 @@ from django.conf import settings
 from django.test.testcases import TestCase
 from django.core.exceptions import ImproperlyConfigured
 
-from cdms_api.base import CDMSApi, delete_cookie, cookie_exists, COOKIE_FILE
+from cdms_api.base import CDMSApi
+from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
     CDMSNotFoundException, CDMSException
 
@@ -19,7 +20,8 @@ class BaseCDMSApiTestCase(TestCase):
         super(BaseCDMSApiTestCase, self).setUp()
 
         # always delete the cookies before running the tests
-        delete_cookie()
+        self.cookie_storage = CookieStorage()
+        self.cookie_storage.reset()
 
 
 class SetUpTestCase(BaseCDMSApiTestCase):
@@ -123,8 +125,20 @@ class MockedResponseMixin(object):
         """
         Makes sure that the cookie is there.
         """
-        with open(COOKIE_FILE, 'wb') as f:
-            pickle.dump({}, f)
+        from http.cookiejar import Cookie
+        self.cookie_storage.write({
+            'example.com': {
+                '/': {
+                    'NID': Cookie(
+                        version=0, name='NID', value='0000', port=None, port_specified=False,
+                        domain='example.com', domain_specified=True, domain_initial_dot=True,
+                        path='/', path_specified=True, secure=False, expires=1476201395,
+                        discard=False, comment=None, comment_url=None, rest={'HttpOnly': None},
+                        rfc2109=False
+                    )
+                }
+            }
+        })
 
 
 class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
@@ -144,7 +158,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         When logging in for the first time (=> no cookie exists), the constructor should log in and save
         the valid cookie on the filesystem.
         """
-        self.assertFalse(cookie_exists())
+        self.assertFalse(self.cookie_storage.exists())
 
         self.mock_initial_login()
         self.mock_login_step(1)
@@ -152,7 +166,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_login_step(3)
 
         api = CDMSApi()
-        self.assertTrue(cookie_exists())
+        self.assertTrue(self.cookie_storage.exists())
         self.assertTrue(api.session)
 
     @responses.activate
