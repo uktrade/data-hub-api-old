@@ -1,0 +1,11 @@
+*.DS_Store
+*.py?
+*~
+__pycache__
+
+data-hub-api/settings/local.py
+data-hub-api/assets/
+static/
+docs/
+venv/
+env/
