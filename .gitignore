@@ -69,3 +69,7 @@ node_modules/
 # bower packages
 data-hub-api/assets-src/vendor/
 .sass-cache/
+
+# PyCharm
+.idea
+
