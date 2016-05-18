@@ -1,13 +1,14 @@
 import time
-import random
 import requests
-from collections import defaultdict, namedtuple
+from collections import namedtuple
 
 from django.db.models import Q
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.utils import timezone
 
-from organisation.models import Organisation
+from organisation import constants
+from organisation.models import Organisation, CHOrganisation
 
 
 def perc(num, tot):
@@ -54,12 +55,13 @@ class AccuracyCalc(object):
         return self.sub_accuracy / 2
 
 
-FindingResult = namedtuple('FindingResult', ['name', 'postcode', 'accuracy', 'company_number'])
+FindingResult = namedtuple(
+    'FindingResult',
+    ['name', 'postcode', 'accuracy', 'company_number', 'raw', 'source']
+)
 
 
 class BaseSource(object):
-    NAME = 'Base'
-
     def __init__(self, name, postcode):
         super(BaseSource, self).__init__()
         self.name = name
@@ -90,8 +92,7 @@ class BaseSource(object):
 
 
 class CHSource(BaseSource):
-    NAME = 'CH'
-
+    NAME = constants.CH_SOURCES.CH.display
     CH_SEARCH_URL = 'https://api.companieshouse.gov.uk/search/companies?q={}'
 
     def get_accuracy(self, ch_name, ch_postcode):
@@ -114,7 +115,8 @@ class CHSource(BaseSource):
             self.findings.append(
                 FindingResult(
                     name=ch_name, postcode=ch_postcode,
-                    accuracy=accuracy, company_number=company_number
+                    accuracy=accuracy, company_number=company_number,
+                    raw=result, source=constants.CH_SOURCES.CH
                 )
             )
 
@@ -122,8 +124,7 @@ class CHSource(BaseSource):
 
 
 class DueDilSource(BaseSource):
-    NAME = 'DueDil'
-
+    NAME = constants.CH_SOURCES.DUEDIL.display
     DUEL_SEARCH_URL = 'http://api.duedil.com/open/search?q={}&api_key={}'
     CH_COMPANY_URL = 'https://api.companieshouse.gov.uk/company/{}'
 
@@ -138,9 +139,9 @@ class DueDilSource(BaseSource):
         response = requests.get(url, auth=(settings.CH_KEY, ''))
         time.sleep(0.5)
         if not response.ok:
-            return None
+            return (None, None)
         result = response.json()
-        return self._get_ch_address(result)
+        return (result, self._get_ch_address(result))
 
     def _build_findings(self):
         self.findings = []
@@ -155,13 +156,21 @@ class DueDilSource(BaseSource):
         for result in results:
             dd_name = result['name']
             company_number = result['company_number']
-            ch_postcode = self.get_ch_postcode(company_number)
+            ch_result, ch_postcode = self.get_ch_postcode(company_number)
             accuracy = self.get_accuracy(dd_name, ch_postcode)
+
+            if ch_result:
+                raw = ch_result
+                source = constants.CH_SOURCES.CH
+            else:
+                raw = result
+                source = constants.CH_SOURCES.DUEDIL
 
             self.findings.append(
                 FindingResult(
                     name=dd_name, postcode=ch_postcode,
-                    accuracy=accuracy, company_number=company_number
+                    accuracy=accuracy, company_number=company_number,
+                    raw=raw, source=source
                 )
             )
 
@@ -170,7 +179,7 @@ class Command(BaseCommand):
     help = 'Check matches against Companies House'
 
     def add_arguments(self, parser):
-        parser.add_argument('sample_size', type=int, help='Size of the sample')
+        parser.add_argument('window', type=int, help='Window to import')
 
     def company_number_finder(self, cdms_org):
         finding = None
@@ -195,32 +204,44 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         orgs = Organisation.objects.skip_cdms().filter(
             uk_organisation=True, companies_house_number='',
-            verified_companies_house_number='',
+            verified_ch_data__isnull=True,
             master_cdms_pk__isnull=True
-        ).filter(
-            Q(business_type='98d14e94-5d95-e211-a939-e4115bead28a') | Q(business_type__isnull=True),
         ).exclude(
             Q(name__icontains='duplicate') | Q(name__icontains='not use')
-        )
+        ).exclude(
+            last_checked__isnull=False
+        ).order_by('?')
         tot_orgs = orgs.count()
 
-        tot_items = options['sample_size']
-        stats = defaultdict(int)
-        for index in range(0, tot_items):
-            org = orgs[random.randint(0, len(orgs))]
+        tot_items = options['window']
+        stats = {
+            'OK': 0,
+            'KO': 0
+        }
 
+        for org in orgs[:tot_items]:
             finding = self.company_number_finder(org)
 
-            if finding:
-                stats[finding.accuracy] += 1
+            if finding and finding.accuracy >= 0.5:
+                stats['OK'] += 1
+                obj, created = CHOrganisation.objects.get_or_create(
+                    number=finding.company_number,
+                    defaults={
+                        'name': finding.name,
+                        'source': finding.source,
+                        'raw': finding.raw
+                    }
+                )
+                org.verified_ch_data = obj
+                # print(self.style.SUCCESS('{} - {}'.format(finding.source, finding.raw)))
             else:
-                stats[-1] += 1
+                stats['KO'] += 1
+            org.last_checked = timezone.now()
+            org.save(skip_cdms=True, update_fields=['verified_ch_data', 'last_checked'])
 
         self.stdout.write(self.style.SUCCESS('\n********** ANALYSIS: RESULTS **********'))
         print(
-            'Tot number: {}\n'.format(tot_orgs),
-            'Matching with sources (tot sample: {}): \n'.format(tot_items),
-            '\n'.join(
-                ['\t{}: {}%'.format(accuracy, perc(count, tot_items)) for accuracy, count in stats.items()]
-            )
+            'Tot left: {}\n'.format(tot_orgs),
+            '\n\tOK: {}'.format(stats['OK']),
+            '\n\tKO: {}'.format(stats['KO'])
         )

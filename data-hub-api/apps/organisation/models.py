@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 from django.core.urlresolvers import reverse
 
 from reversion import revisions as reversion
@@ -6,9 +7,20 @@ from reversion import revisions as reversion
 from core.models import CRMBaseModel
 from core.managers import CRMManager
 from core.fields import UKTIForeignKey
+from core.lib_models import TimeStampedModel
 
 from .cdms_migrator import OrganisationMigrator, ContactMigrator
 from . import constants
+
+
+class CHOrganisation(TimeStampedModel):
+    number = models.CharField(max_length=50, primary_key=True)
+    name = models.CharField(max_length=500)
+    source = models.CharField(max_length=10, choices=constants.CH_SOURCES)
+    raw = JSONField()
+
+    def __str__(self):
+        return '#{} - {} from {}'.format(self.number, self.name, self.source)
 
 
 @reversion.register()
@@ -316,7 +328,8 @@ class Organisation(CRMBaseModel):
     modified_by = models.CharField(max_length=1200, blank=True, null=True)
     modified_on_behalf_by = models.CharField(max_length=1200, blank=True, null=True)
 
-    verified_companies_house_number = models.CharField(max_length=255, blank=True)
+    verified_ch_data = models.ForeignKey(CHOrganisation, null=True, blank=True)
+    last_checked = models.DateTimeField(null=True, blank=True)
 
     objects = CRMManager()
     cdms_migrator = OrganisationMigrator()

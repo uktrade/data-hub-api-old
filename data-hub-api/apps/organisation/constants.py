@@ -1,3 +1,11 @@
+from extended_choices import Choices
+
+CH_SOURCES = Choices(
+    # (prop, id, label)
+    ('CH', 'CH', 'Companies House'),
+    ('DUEDIL', 'DUEDIL', 'DueDil'),
+)
+
 COMPANIES_HOUSE_STATUS_CHOICES = (
     ('db65bea3-ad99-e511-88b6-e4115bead28a', 'Ceased Trading'),
     ('69756b9a-5d95-e211-a939-e4115bead28a', 'Dissolved'),
