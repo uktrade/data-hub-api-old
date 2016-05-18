@@ -14,6 +14,10 @@ class BaseField(object):
         return value
 
 
+class DecimalField(BaseField):
+    pass
+
+
 class IntegerField(BaseField):
     pass
 
@@ -30,7 +34,14 @@ class StringField(BaseField):
 
 
 class BooleanField(BaseField):
-    pass
+    def __init__(self, cdms_name, null=False):
+        super(BooleanField, self).__init__(cdms_name)
+        self.null = null
+
+    def from_cdms_value(self, value):
+        if not self.null and not value:
+            return False
+        return value
 
 
 class DateTimeField(BaseField):
@@ -59,6 +70,18 @@ class IdRefField(BaseField):
         if not value:
             return value
         return value['Id']
+
+
+class OptionSetValueField(BaseField):
+    def to_cdms_value(self, value):
+        if not value:
+            return value
+        return {'Value': value}
+
+    def from_cdms_value(self, value):
+        if not value:
+            return value
+        return value['Value']
 
 
 class ForeignKeyField(IdRefField):

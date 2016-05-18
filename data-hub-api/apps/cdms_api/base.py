@@ -65,7 +65,7 @@ class CDMSApi(object):
         data.update(params)
 
         url = url or form_action
-        resp = session.post(url, data)
+        resp = session.post(url, data, verify=False)
 
         # check status code
         if not resp.ok:
@@ -104,7 +104,8 @@ class CDMSApi(object):
 
         # 1. get login page
         url = '{}/?whr={}'.format(settings.CDMS_BASE_URL, settings.CDMS_ADFS_URL)
-        resp = session.get(url)
+        logger.debug('calling {}'.format(url))
+        resp = session.get(url, verify=False)
         if not resp.ok:
             raise UnexpectedResponseException(
                 '{} for status code {}'.format(url, resp.status_code),
@@ -151,7 +152,7 @@ class CDMSApi(object):
 
         if data:
             data = json.dumps(data)
-        resp = getattr(self.session, verb)(url, data=data, headers=headers)
+        resp = getattr(self.session, verb)(url, verify=False, data=data, headers=headers)
 
         if resp.status_code >= 400:
             logger.debug('Got CDMS error (%s): %s' % (resp.status_code, resp.content))
