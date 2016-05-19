@@ -28,7 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'reversion'
+    'django_countries',
+
+    'reversion',
+    'companieshouse',
 ]
 
 PROJECT_APPS = []
