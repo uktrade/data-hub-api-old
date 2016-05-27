@@ -141,6 +141,16 @@ CDMS_USERNAME = ''
 CDMS_PASSWORD = ''
 CDMS_COOKIE_KEY = b''
 
+# SOURCES
+COMPANIES_HOUSE_TOKEN = ''
+DUEDIL_TOKEN = ''
+MATCHER_CLASSES = [  # the order is important, the classes will be used from first to last
+    'companieshouse.sources.db.matcher.ChDBMatcher',
+    'companieshouse.sources.api.matcher.ChAPIMatcher',
+    'companieshouse.sources.duedil.matcher.DueDilMatcher'
+]
+MATCHER_ACCEPTANCE_PROXIMITY = 0.5  # any proximity matches >= this value will be a hit
+
 
 # .local.py overrides all the common settings.
 try:
