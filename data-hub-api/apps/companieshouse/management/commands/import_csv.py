@@ -5,7 +5,7 @@ from multiprocessing import Pool
 
 from django.core.management.base import BaseCommand, CommandError
 
-from companieshouse.importers import CSVImporter
+from companieshouse.sources.db.importers import CSVImporter
 from companieshouse.models import Company
 
 

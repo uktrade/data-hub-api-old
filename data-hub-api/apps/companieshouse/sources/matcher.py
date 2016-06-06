@@ -35,7 +35,7 @@ class BaseMatcher(object):
         return similarity_calc.get_proximity()
 
     def _choose_best_finding(self):
-        assert self.findings != None  # noqa
+        assert self.findings is not None
 
         if not self.findings:
             return None
