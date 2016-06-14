@@ -2,7 +2,7 @@ import datetime
 
 from django.test.testcases import TestCase
 
-from companieshouse.importers import CSVImporter
+from companieshouse.sources.db.importers import CSVImporter
 from companieshouse import constants
 
 
