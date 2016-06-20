@@ -3,10 +3,10 @@ from unittest import skip, mock
 from django.utils import timezone
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class FilterLookupsTestCase(BaseMockedCDMSApiTestCase):
+class FilterLookupsTestCase(BaseMockedCDMSRestApiTestCase):
     def setUp(self):
         super(FilterLookupsTestCase, self).setUp()
         self.obj = SimpleObj.objects.skip_cdms().create(
@@ -216,7 +216,7 @@ class FilterLookupsTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoAPICalled()
 
 
-class FilterInvalidValuesForLookupsTestCase(BaseMockedCDMSApiTestCase):
+class FilterInvalidValuesForLookupsTestCase(BaseMockedCDMSRestApiTestCase):
     def test_resolve_expression(self):
         from django.db.models.query_utils import Q
 

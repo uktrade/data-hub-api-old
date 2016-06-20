@@ -2,7 +2,7 @@ import datetime
 
 from django.test.testcases import TestCase
 
-from cdms_api.utils import cdms_datetime_to_datetime, datetime_to_cdms_datetime
+from cdms_api.rest.utils import cdms_datetime_to_datetime, datetime_to_cdms_datetime
 
 
 class CdmsDatetimeToDatetimeTestCase(TestCase):

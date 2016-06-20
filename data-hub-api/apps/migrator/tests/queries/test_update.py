@@ -7,12 +7,12 @@ from reversion import revisions as reversion
 from reversion.models import Revision, Version
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
-from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_update
+from cdms_api.tests.rest.utils import mocked_cdms_get, mocked_cdms_update
 
 
-class UpdateWithSaveTestCase(BaseMockedCDMSApiTestCase):
+class UpdateWithSaveTestCase(BaseMockedCDMSRestApiTestCase):
     def test_save(self):
         """
         obj.save() should
@@ -163,7 +163,7 @@ class UpdateWithSaveTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(obj.name, 'simple obj')
 
 
-class UpdateWithManagerTestCase(BaseMockedCDMSApiTestCase):
+class UpdateWithManagerTestCase(BaseMockedCDMSRestApiTestCase):
     def test_update(self):
         """
         MyObject.objects.filter(...).update(...) not currently implemented
@@ -205,7 +205,7 @@ class UpdateWithManagerTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(obj.name, 'simple obj')
 
 
-class SelectForUpdateCDMSTestCase(BaseMockedCDMSApiTestCase):
+class SelectForUpdateCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     def test_select_for_update(self):
         """
         MyObject.objects.select_for_update() not currently implemented.

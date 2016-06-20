@@ -5,13 +5,13 @@ from django.utils import timezone
 from reversion import revisions as reversion
 from reversion.models import Revision, Version
 
-from cdms_api.tests.utils import mocked_cdms_create
+from cdms_api.tests.rest.utils import mocked_cdms_create
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class CreateWithSaveTestCase(BaseMockedCDMSApiTestCase):
+class CreateWithSaveTestCase(BaseMockedCDMSRestApiTestCase):
     def test_success(self):
         """
         obj.save() should create a new obj in local and cdms if it doesn't exist.
@@ -88,7 +88,7 @@ class CreateWithSaveTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class CreateWithManagerTestCase(BaseMockedCDMSApiTestCase):
+class CreateWithManagerTestCase(BaseMockedCDMSRestApiTestCase):
     def test_success(self):
         """
         MyObject.objects.create() should create a new obj in local and cdms.
@@ -187,7 +187,7 @@ class CreateWithManagerTestCase(BaseMockedCDMSApiTestCase):
         )
 
 
-class CreateWithSaveSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
+class CreateWithSaveSkipCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     def test_success(self):
         """
         When calling obj.save(skip_cdms=True), changes should only happen in local, not in cdms.
@@ -209,7 +209,7 @@ class CreateWithSaveSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(Revision.objects.count(), 1)
 
 
-class CreateWithManagerSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
+class CreateWithManagerSkipCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     def test_with_create(self):
         """
         When calling MyObject.objects.skip_cdms().create(), changes should only happen in local, not in cdms.

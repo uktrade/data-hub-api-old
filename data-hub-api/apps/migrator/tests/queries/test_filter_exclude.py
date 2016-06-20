@@ -3,10 +3,10 @@ import datetime
 from django.db.models import Q
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class FilterTestCase(BaseMockedCDMSApiTestCase):
+class FilterTestCase(BaseMockedCDMSRestApiTestCase):
     def test_one_field(self):
         list(SimpleObj.objects.filter(name='something'))
 
@@ -97,7 +97,7 @@ class FilterTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class FilterSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
+class FilterSkipCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     def test_filter(self):
         """
         Klass.objects.skip_cdms().filter(field=...) should not hit cdms.
@@ -107,7 +107,7 @@ class FilterSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ExcludeTestCase(BaseMockedCDMSApiTestCase):
+class ExcludeTestCase(BaseMockedCDMSRestApiTestCase):
     def test_one_field(self):
         list(SimpleObj.objects.exclude(name='something'))
 
@@ -172,7 +172,7 @@ class ExcludeTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ExcludeSkipCDMSTestCase(BaseMockedCDMSApiTestCase):
+class ExcludeSkipCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     """
     Klass.objects.skip_cdms().exclude(field=...) should not hit cdms.
     """

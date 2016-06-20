@@ -1,7 +1,7 @@
 from django.db.models import Count
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 from reversion.models import Revision, Version
 
@@ -15,7 +15,7 @@ class SingleObjMixin(object):
         self.reset_revisions()
 
 
-class AnnotateTestCase(BaseMockedCDMSApiTestCase):
+class AnnotateTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -30,7 +30,7 @@ class AnnotateTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ReverseTestCase(BaseMockedCDMSApiTestCase):
+class ReverseTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -45,7 +45,7 @@ class ReverseTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class DistinctTestCase(BaseMockedCDMSApiTestCase):
+class DistinctTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -60,7 +60,7 @@ class DistinctTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ValuesTestCase(BaseMockedCDMSApiTestCase):
+class ValuesTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -75,7 +75,7 @@ class ValuesTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ValuesListTestCase(BaseMockedCDMSApiTestCase):
+class ValuesListTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -90,7 +90,7 @@ class ValuesListTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class DatesTestCase(BaseMockedCDMSApiTestCase):
+class DatesTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -105,7 +105,7 @@ class DatesTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class DatetimesTestCase(BaseMockedCDMSApiTestCase):
+class DatetimesTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -120,7 +120,7 @@ class DatetimesTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class NoneTestCase(BaseMockedCDMSApiTestCase):
+class NoneTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         ret = list(SimpleObj.objects.none())
         self.assertEqual(ret, [])
@@ -133,7 +133,7 @@ class NoneTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class SelectRelatedTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class SelectRelatedTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -148,7 +148,7 @@ class SelectRelatedTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class PrefetchRelatedTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class PrefetchRelatedTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -166,7 +166,7 @@ class PrefetchRelatedTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ExtraTestCase(BaseMockedCDMSApiTestCase):
+class ExtraTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -181,7 +181,7 @@ class ExtraTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class DeferTestCase(BaseMockedCDMSApiTestCase):
+class DeferTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -196,7 +196,7 @@ class DeferTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class OnlyTestCase(BaseMockedCDMSApiTestCase):
+class OnlyTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -211,7 +211,7 @@ class OnlyTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class RawTestCase(BaseMockedCDMSApiTestCase):
+class RawTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -226,7 +226,7 @@ class RawTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class GetOrCreateTestCase(BaseMockedCDMSApiTestCase):
+class GetOrCreateTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -244,7 +244,7 @@ class GetOrCreateTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(Revision.objects.count(), 1)
 
 
-class UpdateOrCreateTestCase(BaseMockedCDMSApiTestCase):
+class UpdateOrCreateTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -262,7 +262,7 @@ class UpdateOrCreateTestCase(BaseMockedCDMSApiTestCase):
         self.assertEqual(Revision.objects.count(), 1)
 
 
-class CountTestCase(BaseMockedCDMSApiTestCase):
+class CountTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -277,7 +277,7 @@ class CountTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class InBulkTestCase(BaseMockedCDMSApiTestCase):
+class InBulkTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -292,7 +292,7 @@ class InBulkTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class LatestTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class LatestTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -307,7 +307,7 @@ class LatestTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class EarliestTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class EarliestTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -322,7 +322,7 @@ class EarliestTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class FirstTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class FirstTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -337,7 +337,7 @@ class FirstTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class LastTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
+class LastTestCase(SingleObjMixin, BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -352,7 +352,7 @@ class LastTestCase(SingleObjMixin, BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class AggregateTestCase(BaseMockedCDMSApiTestCase):
+class AggregateTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,
@@ -367,7 +367,7 @@ class AggregateTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class ExistsTestCase(BaseMockedCDMSApiTestCase):
+class ExistsTestCase(BaseMockedCDMSRestApiTestCase):
     def test(self):
         self.assertRaises(
             NotImplementedError,

@@ -1,15 +1,15 @@
 from django.db.models import Q
 from django.utils import timezone
 
-from cdms_api.tests.utils import mocked_cdms_create
+from cdms_api.tests.rest.utils import mocked_cdms_create
 
 from migrator.exceptions import NotMappingFieldException
 
 from migrator.tests.models import SimpleObj, ParentObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class BaseForeignKeyTestCase(BaseMockedCDMSApiTestCase):
+class BaseForeignKeyTestCase(BaseMockedCDMSRestApiTestCase):
     def setUp(self):
         super(BaseForeignKeyTestCase, self).setUp()
         self.parent_obj = ParentObj.objects.skip_cdms().create(

@@ -4,8 +4,8 @@ from unittest import mock
 
 from django.utils import timezone
 
-from cdms_api.base import CDMSApi
-from cdms_api.utils import datetime_to_cdms_datetime
+from cdms_api.rest.api import CDMSRestApi
+from cdms_api.rest.utils import datetime_to_cdms_datetime
 
 
 def populate_data(service, data={}, guid=None):
@@ -84,11 +84,11 @@ def mocked_cdms_list(list_data=[]):
     return internal
 
 
-def get_mocked_api():
-    api = mock.MagicMock(spec=CDMSApi)
+def get_mocked_cdms_connection():
+    connection = mock.MagicMock(spec=CDMSRestApi)
 
-    api.create.side_effect = mocked_cdms_create()
-    api.get.side_effect = mocked_cdms_get()
-    api.update.side_effect = mocked_cdms_update()
-    api.list.side_effect = mocked_cdms_list()
-    return api
+    connection.create.side_effect = mocked_cdms_create()
+    connection.get.side_effect = mocked_cdms_get()
+    connection.update.side_effect = mocked_cdms_update()
+    connection.list.side_effect = mocked_cdms_list()
+    return connection

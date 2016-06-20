@@ -8,11 +8,11 @@ from reversion.models import Revision, Version
 
 from migrator.query import REVISION_COMMENT_CDMS_REFRESH
 
-from cdms_api.tests.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdms_update
+from cdms_api.tests.rest.utils import mocked_cdms_get, mocked_cdms_create, mocked_cdms_update
 
 
-class BaseMockedCDMSApiTestCase(TransactionTestCase):
-    @mock.patch('migrator.query.cdms_connection')
+class BaseMockedCDMSRestApiTestCase(TransactionTestCase):
+    @mock.patch('migrator.query.rest_connection')
     def __call__(self, result, mocked_cdms_api, *args, **kwargs):
         # mocking the modified value so that the tests don't depend on the automatic 'now' datetime value
         # and therefore we can catch all hidden problems.
@@ -25,7 +25,7 @@ class BaseMockedCDMSApiTestCase(TransactionTestCase):
         mocked_cdms_api.update.side_effect = mocked_cdms_update()
 
         self.mocked_cdms_api = mocked_cdms_api
-        super(BaseMockedCDMSApiTestCase, self).__call__(result, *args, **kwargs)
+        super(BaseMockedCDMSRestApiTestCase, self).__call__(result, *args, **kwargs)
 
     def adjust_modified_field(self, obj, modified):
         """

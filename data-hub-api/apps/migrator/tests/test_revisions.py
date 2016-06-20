@@ -4,10 +4,10 @@ from reversion import revisions as reversion
 from reversion.models import Revision, Version
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class RevisionTestCase(BaseMockedCDMSApiTestCase):
+class RevisionTestCase(BaseMockedCDMSRestApiTestCase):
     @skip('Not supported out-of-the-box, to be implemented if needed')
     def test_revert_deleted_object(self):
         """
