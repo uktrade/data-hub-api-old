@@ -1,0 +1,42 @@
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+	<s:Header>
+		<a:Action s:mustUnderstand="1">http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveResponse</a:Action>
+		<a:RelatesTo>urn:uuid:82024dd9-d8b6-9d89-4cca-31ab2be47261</a:RelatesTo>
+		<ActivityId CorrelationId="a738923d-cdb9-48a9-836b-ac36c117513a" xmlns="http://schemas.microsoft.com/2004/09/ServiceModel/Diagnostics">00000000-0000-0000-0000-000000000000</ActivityId>
+		<o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+			<u:Timestamp u:Id="_0">
+				<u:Created>2016-06-01T10:16:00.516Z</u:Created>
+				<u:Expires>2016-06-01T10:21:00.516Z</u:Expires>
+			</u:Timestamp>
+		</o:Security>
+	</s:Header>
+	<s:Body>
+		<RetrieveResponse xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+			<RetrieveResult xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+				<b:Attributes xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic">
+					<b:KeyValuePairOfstringanyType>
+						<c:key>firstname</c:key>
+						<c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">john</c:value>
+					</b:KeyValuePairOfstringanyType>
+					<b:KeyValuePairOfstringanyType>
+						<c:key>lastname</c:key>
+						<c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">doe</c:value>
+					</b:KeyValuePairOfstringanyType>
+					<b:KeyValuePairOfstringanyType>
+						<c:key>internalemailaddress</c:key>
+						<c:value i:type="d:string" xmlns:d="http://www.w3.org/2001/XMLSchema">john.doe@example.com</c:value>
+					</b:KeyValuePairOfstringanyType>
+					<b:KeyValuePairOfstringanyType>
+						<c:key>systemuserid</c:key>
+						<c:value i:type="d:guid" xmlns:d="http://schemas.microsoft.com/2003/10/Serialization/">0a0a00a0-0000-a000-a00a-a0000aaaa00a</c:value>
+					</b:KeyValuePairOfstringanyType>
+				</b:Attributes>
+				<b:EntityState i:nil="true"/>
+				<b:FormattedValues xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+				<b:Id>0a0a00a0-0000-a000-a00a-a0000aaaa00a</b:Id>
+				<b:LogicalName>systemuser</b:LogicalName>
+				<b:RelatedEntities xmlns:c="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+			</RetrieveResult>
+		</RetrieveResponse>
+	</s:Body>
+</s:Envelope>

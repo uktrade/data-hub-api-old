@@ -1,0 +1,19 @@
+{% extends "base.xml" %}
+
+{% block content %}
+  {% with "http://docs.oasis-open.org/ws-sx/ws-trust/200512/RST/Issue" as action %}
+  {% include "partials/auth_header.xml" %}
+  {% endwith %}
+
+  <s:Body>
+    <trust:RequestSecurityToken xmlns:trust="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
+      <wsp:AppliesTo xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+        <a:EndpointReference>
+          <a:Address>{{ applies_to_address }}</a:Address>
+        </a:EndpointReference>
+      </wsp:AppliesTo>
+      <trust:KeyType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/SymmetricKey</trust:KeyType>
+      <trust:RequestType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue</trust:RequestType>
+    </trust:RequestSecurityToken>
+  </s:Body>
+{% endblock content %}

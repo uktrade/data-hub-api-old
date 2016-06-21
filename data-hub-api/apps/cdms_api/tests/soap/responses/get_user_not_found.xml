@@ -1,0 +1,40 @@
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+	<s:Header>
+		<a:Action s:mustUnderstand="1">http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/RetrieveOrganizationServiceFaultFault</a:Action>
+		<a:RelatesTo>urn:uuid:1b5d3921-95d1-4a1d-ac46-5d1e1ccec49d</a:RelatesTo>
+		<ActivityId CorrelationId="c58e9d46-d34a-4419-af90-ac332f4e71f1" xmlns="http://schemas.microsoft.com/2004/09/ServiceModel/Diagnostics">00000000-0000-0000-0000-1234567890</ActivityId>
+		<o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+			<u:Timestamp u:Id="_0">
+				<u:Created>2016-06-01T10:36:37.009Z</u:Created>
+				<u:Expires>2016-06-01T10:41:37.009Z</u:Expires>
+			</u:Timestamp>
+		</o:Security>
+	</s:Header>
+	<s:Body>
+		<s:Fault>
+			<s:Code>
+				<s:Value>s:Sender</s:Value>
+			</s:Code>
+			<s:Reason>
+				<s:Text xml:lang="en-GB">systemuser With Id = 0a0a00a0-0000-a000-a00a-a0000aaaa00a Does Not Exist</s:Text>
+			</s:Reason>
+			<s:Detail>
+				<OrganizationServiceFault xmlns="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+					<ErrorCode>-2147220969</ErrorCode>
+					<ErrorDetails xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+					<Message>systemuser With Id = 0a0a00a0-0000-a000-a00a-a0000aaaa00a Does Not Exist</Message>
+					<Timestamp>2016-06-01T10:36:37.0080678Z</Timestamp>
+					<InnerFault>
+						<ErrorCode>-2147220969</ErrorCode>
+						<ErrorDetails xmlns:b="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+						<Message>systemuser With Id = 0a0a00a0-0000-a000-a00a-a0000aaaa00a Does Not Exist</Message>
+						<Timestamp>2016-06-01T10:36:37.0080678Z</Timestamp>
+						<InnerFault i:nil="true"/>
+						<TraceText i:nil="true"/>
+					</InnerFault>
+					<TraceText i:nil="true"/>
+				</OrganizationServiceFault>
+			</s:Detail>
+		</s:Fault>
+	</s:Body>
+</s:Envelope>

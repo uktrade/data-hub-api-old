@@ -1,0 +1,17 @@
+{% extends "base.xml" %}
+
+{% block content %}
+  {% with "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Execute" as action %}
+  {% include "partials/auth_header.xml" %}
+  {% endwith %}
+
+  <s:Body>
+    <Execute xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+      <request i:type="c:{{ request_name }}Request" xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://schemas.microsoft.com/crm/2011/Contracts">
+        <b:Parameters xmlns:d="http://schemas.datacontract.org/2004/07/System.Collections.Generic"/>
+        <b:RequestId i:nil="true"/>
+        <b:RequestName>{{ request_name }}</b:RequestName>
+      </request>
+    </Execute>
+  </s:Body>
+{% endblock content %}
