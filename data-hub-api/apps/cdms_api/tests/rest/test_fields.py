@@ -3,7 +3,7 @@ from unittest import mock
 
 from django.test.testcases import TestCase
 
-from cdms_api.fields import StringField, IntegerField, DateTimeField, BooleanField, IdRefField, ForeignKeyField
+from cdms_api.rest.fields import StringField, IntegerField, DateTimeField, BooleanField, IdRefField, ForeignKeyField
 
 
 class StringFieldTestCase(TestCase):
@@ -182,7 +182,7 @@ class ForeignKeyFieldTestCase(TestCase):
         super(ForeignKeyFieldTestCase, self).setUp()
         self.field = ForeignKeyField('name', 'MyModel')
 
-    @mock.patch('cdms_api.fields.apps')
+    @mock.patch('cdms_api.rest.fields.apps')
     def __call__(self, result, mocked_apps, *args, **kwargs):
         mocked_apps.get_model.return_value = MyFKModel
         super(ForeignKeyFieldTestCase, self).__call__(result, *args, **kwargs)

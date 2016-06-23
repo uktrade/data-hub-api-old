@@ -9,13 +9,13 @@ from reversion.models import Revision, Version
 from cdms_api.exceptions import CDMSNotFoundException
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 from migrator.exceptions import ObjectsNotInSyncException
 
-from cdms_api.tests.utils import mocked_cdms_get
+from cdms_api.tests.rest.utils import mocked_cdms_get
 
 
-class BaseGetTestCase(BaseMockedCDMSApiTestCase):
+class BaseGetTestCase(BaseMockedCDMSRestApiTestCase):
     def setUp(self):
         super(BaseGetTestCase, self).setUp()
         self.obj = SimpleObj.objects.skip_cdms().create(

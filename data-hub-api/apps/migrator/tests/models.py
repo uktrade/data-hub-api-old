@@ -5,7 +5,7 @@ from migrator.models import CDMSModel
 from migrator.managers import CDMSManager
 from migrator.cdms_migrator import BaseCDMSMigrator
 
-from cdms_api import fields as cdms_fields
+from cdms_api.rest import fields as cdms_fields
 
 from migrator.fields import CDMSForeignKey
 

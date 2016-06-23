@@ -1,8 +1,8 @@
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class BaseDeleteTestCase(BaseMockedCDMSApiTestCase):
+class BaseDeleteTestCase(BaseMockedCDMSRestApiTestCase):
     def setUp(self):
         super(BaseDeleteTestCase, self).setUp()
         self.obj = SimpleObj.objects.skip_cdms().create(

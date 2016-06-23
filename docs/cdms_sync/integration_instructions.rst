@@ -82,7 +82,7 @@ For example
 
 .. code:: python
 
-  from cdms_api import fields as cdms_fields
+  from cdms_api.rest import fields as cdms_fields
 
   from migrator.cdms_migrator import BaseCDMSMigrator
 

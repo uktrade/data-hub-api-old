@@ -1,0 +1,27 @@
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"
+   xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+	<s:Header>
+		<a:Action s:mustUnderstand="1">http://www.w3.org/2005/08/addressing/soap/fault</a:Action>
+		<a:RelatesTo>urn:uuid:18f34c4e-dd7b-4323-a1d1-c5c13e1b0000</a:RelatesTo>
+		<o:Security s:mustUnderstand="1"
+           xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+			<u:Timestamp u:Id="_0">
+				<u:Created>2016-01-01T10:00:00.000Z</u:Created>
+				<u:Expires>2016-01-01T11:00:00.000Z</u:Expires>
+			</u:Timestamp>
+		</o:Security>
+	</s:Header>
+	<s:Body>
+		<s:Fault>
+			<s:Code>
+				<s:Value>s:Sender</s:Value>
+				<s:Subcode>
+					<s:Value xmlns:a="http://docs.oasis-open.org/ws-sx/ws-trust/200512">a:FailedAuthentication</s:Value>
+				</s:Subcode>
+			</s:Code>
+			<s:Reason>
+				<s:Text xml:lang="en-US">MSIS8108: Authentication failed.</s:Text>
+			</s:Reason>
+		</s:Fault>
+	</s:Body>
+</s:Envelope>

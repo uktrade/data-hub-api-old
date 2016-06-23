@@ -1,5 +1,5 @@
-from cdms_api.utils import cdms_datetime_to_datetime
-from cdms_api import fields as cdms_fields
+from cdms_api.rest.utils import cdms_datetime_to_datetime
+from cdms_api.rest import fields as cdms_fields
 
 from .exceptions import NotMappingFieldException, ObjectsNotInSyncException
 

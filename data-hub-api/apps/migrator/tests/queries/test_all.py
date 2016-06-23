@@ -6,12 +6,12 @@ from reversion import revisions as reversion
 from reversion.models import Revision, Version
 
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
-from cdms_api.tests.utils import mocked_cdms_list
+from cdms_api.tests.rest.utils import mocked_cdms_list
 
 
-class AllTestCase(BaseMockedCDMSApiTestCase):
+class AllTestCase(BaseMockedCDMSRestApiTestCase):
     def test_all_with_some_local_objs(self):
         """
         Klass.objects.all() will:

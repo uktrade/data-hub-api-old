@@ -9,22 +9,22 @@ from django.conf import settings
 from django.test.testcases import TestCase
 from django.core.exceptions import ImproperlyConfigured
 
-from cdms_api.base import CDMSApi
+from cdms_api.rest.api import CDMSRestApi
 from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
-    CDMSNotFoundException, CDMSException
+    CDMSNotFoundException, ErrorResponseException
 
 
-class BaseCDMSApiTestCase(TestCase):
+class BaseCDMSRestApiTestCase(TestCase):
     def setUp(self):
-        super(BaseCDMSApiTestCase, self).setUp()
+        super(BaseCDMSRestApiTestCase, self).setUp()
 
         # always delete the cookies before running the tests
         self.cookie_storage = CookieStorage()
         self.cookie_storage.reset()
 
 
-class SetUpTestCase(BaseCDMSApiTestCase):
+class SetUpTestCase(BaseCDMSRestApiTestCase):
     def test_exception_if_urls_not_configured(self):
         """
         If CDMS settings are left blank, the constructor should raise ImproperlyConfigured.
@@ -35,7 +35,7 @@ class SetUpTestCase(BaseCDMSApiTestCase):
             CDMS_USERNAME='username',
             CDMS_PASSWORD='password'
         ):
-            self.assertRaises(ImproperlyConfigured, CDMSApi)
+            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
 
     def test_exception_if_credentials_configured(self):
         """
@@ -47,7 +47,7 @@ class SetUpTestCase(BaseCDMSApiTestCase):
             CDMS_USERNAME='',
             CDMS_PASSWORD=''
         ):
-            self.assertRaises(ImproperlyConfigured, CDMSApi)
+            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
 
 
 class MockedResponseMixin(object):
@@ -141,7 +141,7 @@ class MockedResponseMixin(object):
         })
 
 
-class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     @responses.activate
     def test_invalid_credentials(self):
         """
@@ -150,7 +150,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_initial_login()
         self.mock_login_step(1, errors=True)
 
-        self.assertRaises(LoginErrorException, CDMSApi)
+        self.assertRaises(LoginErrorException, CDMSRestApi)
 
     @responses.activate
     def test_first_successful_login(self):
@@ -165,7 +165,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_login_step(2)
         self.mock_login_step(3)
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         self.assertTrue(self.cookie_storage.exists())
         self.assertTrue(api.session)
 
@@ -175,7 +175,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         In case of exception with the initial login url, the constructor should raise UnexpectedResponseException.
         """
         self.mock_initial_login(status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSApi)
+        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
     @responses.activate
     def test_exception_with_auth_step_1_form(self):
@@ -185,7 +185,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         """
         self.mock_initial_login()
         self.mock_login_step(1, status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSApi)
+        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
     @responses.activate
     def test_exception_with_auth_step_2_form(self):
@@ -196,7 +196,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_initial_login()
         self.mock_login_step(1)
         self.mock_login_step(2, status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSApi)
+        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
     @responses.activate
     def test_exception_with_final_form(self):
@@ -208,7 +208,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_login_step(1)
         self.mock_login_step(2)
         self.mock_login_step(3, status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSApi)
+        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
     @responses.activate
     def test_reuse_existing_cookie(self):
@@ -217,12 +217,12 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         """
         self.mock_cookie()
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         self.assertEqual(len(responses.calls), 0)
         self.assertTrue(api.session)
 
 
-class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(MakeRequestTestCase, self).setUp()
         self.mock_cookie()
@@ -255,7 +255,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_login_step(2)
         self.mock_login_step(3)
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         resp = api.make_request('get', url)
         self.assertEqual(resp, body_response)
         self.assertTrue(api.session)
@@ -273,7 +273,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         self.mock_login_step(2)
         self.mock_login_step(3)
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         self.assertRaises(
             CDMSUnauthorizedException,
             api.make_request, 'get', url
@@ -288,7 +288,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         url = 'https://test/'
         responses.add(responses.GET, url, match_querystring=True, status=404)
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         self.assertRaises(
             CDMSNotFoundException,
             api.make_request, 'get', url
@@ -297,25 +297,25 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
     @responses.activate
     def test_500(self):
         """
-        Endpoint returning an error other than 401/404 should raise CDMSException.
+        Endpoint returning an error other than 401/404 should raise ErrorResponseException.
         """
         url = 'https://test/'
         responses.add(responses.GET, url, match_querystring=True, status=500)
 
-        api = CDMSApi()
+        api = CDMSRestApi()
         self.assertRaises(
-            CDMSException,
+            ErrorResponseException,
             api.make_request, 'get', url
         )
 
 
-class ListTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class ListTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(ListTestCase, self).setUp()
         self.mock_cookie()
 
         self.service = 'MyService'
-        self.url = '{}/{}Set'.format(CDMSApi.CRM_REST_BASE_URL, self.service)
+        self.url = '{}/{}Set'.format(CDMSRestApi.CRM_REST_BASE_URL, self.service)
         responses.add(
             responses.GET, self.url,
             status=200, body=json.dumps({'d': {'results': []}})
@@ -326,7 +326,7 @@ class ListTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         """
         Call to the list endpoint with the defaults params.
         """
-        api = CDMSApi()
+        api = CDMSRestApi()
         api.list(self.service)
 
         self.assertEqual(len(responses.calls), 1)
@@ -340,7 +340,7 @@ class ListTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         """
         Call to the list endpoint with all params defined.
         """
-        api = CDMSApi()
+        api = CDMSRestApi()
         api.list(self.service, top=10, skip=1, select=['a', 'b'], filters='c,d', order_by=['e', 'f'])
 
         self.assertEqual(len(responses.calls), 1)
@@ -354,7 +354,7 @@ class ListTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         """
         Call to the list endpoint with the order_by param as a string instead of a list.
         """
-        api = CDMSApi()
+        api = CDMSRestApi()
         api.list(self.service, order_by='something')
 
         self.assertEqual(len(responses.calls), 1)
@@ -364,14 +364,14 @@ class ListTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         )
 
 
-class GetTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class GetTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(GetTestCase, self).setUp()
         self.mock_cookie()
 
         self.service = 'MyService'
         self.guid = '001122'
-        self.url = "{}/{}Set(guid'{}')".format(CDMSApi.CRM_REST_BASE_URL, self.service, self.guid)
+        self.url = "{}/{}Set(guid'{}')".format(CDMSRestApi.CRM_REST_BASE_URL, self.service, self.guid)
         responses.add(
             responses.GET, self.url,
             status=200, body=json.dumps({'d': 'something'})
@@ -379,21 +379,21 @@ class GetTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
 
     @responses.activate
     def test_get(self):
-        api = CDMSApi()
+        api = CDMSRestApi()
         resp = api.get(self.service, self.guid)
 
         self.assertEqual(len(responses.calls), 1)
         self.assertEqual(resp, 'something')
 
 
-class UpdateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class UpdateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(UpdateTestCase, self).setUp()
         self.mock_cookie()
 
         self.service = 'MyService'
         self.guid = '001122'
-        self.url = "{}/{}Set(guid'{}')".format(CDMSApi.CRM_REST_BASE_URL, self.service, self.guid)
+        self.url = "{}/{}Set(guid'{}')".format(CDMSRestApi.CRM_REST_BASE_URL, self.service, self.guid)
         self.data = {'key': 'value'}
         responses.add(responses.PUT, self.url, status=204)
         responses.add(
@@ -403,7 +403,7 @@ class UpdateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
 
     @responses.activate
     def test_update(self):
-        api = CDMSApi()
+        api = CDMSRestApi()
         resp = api.update(self.service, self.guid, data=self.data)
 
         self.assertEqual(len(responses.calls), 2)
@@ -413,13 +413,13 @@ class UpdateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         )
 
 
-class CreateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class CreateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(CreateTestCase, self).setUp()
         self.mock_cookie()
 
         self.service = 'MyService'
-        self.url = "{}/{}Set".format(CDMSApi.CRM_REST_BASE_URL, self.service)
+        self.url = "{}/{}Set".format(CDMSRestApi.CRM_REST_BASE_URL, self.service)
         self.data = {'key': 'value'}
         responses.add(
             responses.POST, self.url,
@@ -428,7 +428,7 @@ class CreateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
 
     @responses.activate
     def test_create(self):
-        api = CDMSApi()
+        api = CDMSRestApi()
         resp = api.create(self.service, data=self.data)
 
         self.assertEqual(len(responses.calls), 1)
@@ -438,14 +438,14 @@ class CreateTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
         )
 
 
-class DeleteTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
+class DeleteTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     def setUp(self):
         super(DeleteTestCase, self).setUp()
         self.mock_cookie()
 
         self.service = 'MyService'
         self.guid = '001122'
-        self.url = "{}/{}Set(guid'{}')".format(CDMSApi.CRM_REST_BASE_URL, self.service, self.guid)
+        self.url = "{}/{}Set(guid'{}')".format(CDMSRestApi.CRM_REST_BASE_URL, self.service, self.guid)
         responses.add(
             responses.DELETE, self.url,
             status=204
@@ -453,6 +453,6 @@ class DeleteTestCase(MockedResponseMixin, BaseCDMSApiTestCase):
 
     @responses.activate
     def test_delete(self):
-        api = CDMSApi()
+        api = CDMSRestApi()
         api.delete(self.service, self.guid)
         self.assertEqual(len(responses.calls), 1)

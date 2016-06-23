@@ -1,8 +1,8 @@
 from migrator.tests.models import SimpleObj
-from migrator.tests.base import BaseMockedCDMSApiTestCase
+from migrator.tests.base import BaseMockedCDMSRestApiTestCase
 
 
-class OrderByTestCase(BaseMockedCDMSApiTestCase):
+class OrderByTestCase(BaseMockedCDMSRestApiTestCase):
     def test_order_by_default(self):
         """
         If order_by not specified, the default 'modified' field should be used.
@@ -118,7 +118,7 @@ class OrderByTestCase(BaseMockedCDMSApiTestCase):
         self.assertNoRevisions()
 
 
-class OrderBySkipCDMSTestCase(BaseMockedCDMSApiTestCase):
+class OrderBySkipCDMSTestCase(BaseMockedCDMSRestApiTestCase):
     def test_order_by_default(self):
         """
         Klass.objects.skip_cdms().all() should not hit cdms.

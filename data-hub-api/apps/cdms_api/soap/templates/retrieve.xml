@@ -1,0 +1,22 @@
+{% extends "base.xml" %}
+
+{% block content %}
+  {% with "http://schemas.microsoft.com/xrm/2011/Contracts/Services/IOrganizationService/Retrieve" as action %}
+  {% include "partials/auth_header.xml" %}
+  {% endwith %}
+
+  <s:Body>
+    <Retrieve xmlns="http://schemas.microsoft.com/xrm/2011/Contracts/Services">
+      <entityName>{{ entity_name }}</entityName>
+      <id>{{ entity_id }}</id>
+      <columnSet xmlns:b="http://schemas.microsoft.com/xrm/2011/Contracts" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+        <b:AllColumns>false</b:AllColumns>
+        <b:Columns xmlns:c="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+          {% for prop in entity_props %}
+          <c:string>{{ prop }}</c:string>
+          {% endfor %}
+        </b:Columns>
+      </columnSet>
+    </Retrieve>
+  </s:Body>
+{% endblock content %}
