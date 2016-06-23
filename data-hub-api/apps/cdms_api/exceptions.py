@@ -1,7 +1,5 @@
 from requests.exceptions import RequestException
 
-# all request exceptions extend requests RequestException
-
 
 class ErrorResponseException(RequestException):
     def __init__(self, message, content=None, status_code=None):
@@ -26,18 +24,9 @@ class UnexpectedResponseException(ErrorResponseException):
     """
 
 
-# all api related exceptions extend CDMSException
-
-class CDMSException(Exception):
-    def __init__(self, message, status_code=None):
-        super(CDMSException, self).__init__(message)
-        self.message = message
-        self.status_code = status_code
-
-
-class CDMSNotFoundException(CDMSException):
+class CDMSNotFoundException(ErrorResponseException):
     pass
 
 
-class CDMSUnauthorizedException(CDMSException):
+class CDMSUnauthorizedException(ErrorResponseException):
     pass

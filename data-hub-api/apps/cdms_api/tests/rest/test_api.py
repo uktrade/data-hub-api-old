@@ -12,7 +12,7 @@ from django.core.exceptions import ImproperlyConfigured
 from cdms_api.rest.api import CDMSRestApi
 from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
-    CDMSNotFoundException, CDMSException
+    CDMSNotFoundException, ErrorResponseException
 
 
 class BaseCDMSRestApiTestCase(TestCase):
@@ -297,14 +297,14 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
     @responses.activate
     def test_500(self):
         """
-        Endpoint returning an error other than 401/404 should raise CDMSException.
+        Endpoint returning an error other than 401/404 should raise ErrorResponseException.
         """
         url = 'https://test/'
         responses.add(responses.GET, url, match_querystring=True, status=500)
 
         api = CDMSRestApi()
         self.assertRaises(
-            CDMSException,
+            ErrorResponseException,
             api.make_request, 'get', url
         )
 

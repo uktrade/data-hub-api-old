@@ -7,7 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from pyquery import PyQuery
 
-from ..exceptions import CDMSException, CDMSUnauthorizedException, CDMSNotFoundException, \
+from ..exceptions import ErrorResponseException, CDMSUnauthorizedException, CDMSNotFoundException, \
     LoginErrorException, UnexpectedResponseException
 from ..cookie_storage import CookieStorage
 
@@ -156,7 +156,7 @@ class CDMSRestApi(object):
         if resp.status_code >= 400:
             logger.debug('Got CDMS error (%s): %s' % (resp.status_code, resp.content))
 
-            ExceptionClass = self.EXCEPTIONS_MAP.get(resp.status_code, CDMSException)
+            ExceptionClass = self.EXCEPTIONS_MAP.get(resp.status_code, ErrorResponseException)
             raise ExceptionClass(
                 resp.content,
                 status_code=resp.status_code
