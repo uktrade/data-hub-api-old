@@ -12,4 +12,5 @@ Contents:
    :maxdepth: 2
 
    install
+   cdms_access/index
    cdms_sync/index
