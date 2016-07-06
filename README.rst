@@ -9,73 +9,81 @@ Official docs on `Read the Docs <http://data-hub-api.readthedocs.org/>`_
 Dependencies
 ............
 
--  `Virtualenv <http://www.virtualenv.org/en/latest/>`_
--  `Most recent version of pip`
--  `Python 3.5 <http://www.python.org/>`_ (Can be installed using ``brew``)
--  `Postgres 9.5+ <http://www.postgresql.org/>`_
+- (non-essential) `Virtualenv <http://www.virtualenv.org/en/latest/>`_
+
+- (non-essential) `Most recent version of pip`
+
+- `Python 3.5 <http://www.python.org/>`_ (Can be installed using ``brew``)
+
+- `Postgres 9.5+ <http://www.postgresql.org/>`_ :
+
+    * Libraries are required to build psycopg2. For debian flavoured linux::
+
+        sudo apt-get install postgresql postgresql-server-dev-9.5
+
+    * Postgres user that will create / manage databases should also be able to
+      create / install extensions.
+
+    * Postgres user configured by the default settings files is 'postgres'. You
+      will either want to override this with your own settings file, or use the
+      'postgres' user.
+
+- XML processing is provided by ``lxml`` which has its own dependencies::
+
+      sudo apt-get install libxml2-dev libxslt-dev python3-dev
+
+- Crypto is provided by ``cryptography``, which needs SSL and FFI libraries::
+
+      sudo apt-get install libssl-dev libffi-dev
+
 
 Installation
 ............
 
-Clone the repository:
-
-::
+Clone the repository::
 
     git clone git@github.com:UKTradeInvestment/data-hub-api.git
 
-
-Next, create the environment and start it up:
-
-::
+Next, create the environment and start it up::
 
     cd data-hub-api
     virtualenv env --python=python3.5
 
     source env/bin/activate
 
-
-Update pip to the latest version:
-
-::
+Update pip to the latest version::
 
     pip install -U pip
 
-
-Install python dependencies:
-
-::
+Install python dependencies::
 
     pip install -r requirements/local.txt
 
-
 Create the database in postgres called `data-hub-api`.
 
-
 For OSX, update the ``PATH`` and ``DYLD_LIBRARY_PATH`` environment
-variables if necessary:
-
-::
+variables if necessary::
 
     export PATH="/Applications/Postgres.app/Contents/MacOS/bin/:$PATH"
     export DYLD_LIBRARY_PATH="/Applications/Postgres.app/Contents/MacOS/lib/:$DYLD_LIBRARY_PATH"
 
-
-Create a ``local.py`` settings file from the example file and set the CDMS settings/credentials:
-
-::
+Create a ``local.py`` settings file from the example file and set the CDMS
+settings/credentials::
 
     cp data-hub-api/settings/local.example.py data-hub-api/settings/local.py
 
-
-Sync and migrate the database:
-
-::
+Sync and migrate the database::
 
     ./manage.py migrate
 
-
-Start the server:
-
-::
+Start the server::
 
     ./manage.py runserver 8000
+
+
+Testing
+.......
+
+Tests should be run with the testing settings file::
+
+    ./manage.py test --settings=data-hub-api.settings.testing
