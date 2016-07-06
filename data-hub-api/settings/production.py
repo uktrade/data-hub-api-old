@@ -3,7 +3,7 @@ import os
 
 
 DEBUG = False
-TEMPLATES['OPTIONS']['debug'] = DEBUG
+TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 SECRET_KEY = os.environ["SECRET_KEY"]
 
@@ -19,7 +19,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'data-hub-api',
-        'USER': os.environ['DB_USER'],
+        'USER': os.environ['DB_USERNAME'],
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', ''),
         'PORT': '',
