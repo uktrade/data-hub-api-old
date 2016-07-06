@@ -11,7 +11,9 @@ Dependencies
 
 - (non-essential) `Virtualenv <http://www.virtualenv.org/en/latest/>`_
 
-- (non-essential) `Most recent version of pip`
+- Pip 8.1.1. This particular version is advanced enough to be used by
+  `pip-tools <https://github.com/nvie/pip-tools`_, but not too advanced that
+  the latest version breaks it.
 
 - `Python 3.5 <http://www.python.org/>`_ (Can be installed using ``brew``)
 
@@ -51,9 +53,9 @@ Next, create the environment and start it up::
 
     source env/bin/activate
 
-Update pip to the latest version::
+Update pip to the required version::
 
-    pip install -U pip
+    pip install --upgrade pip==8.1.1
 
 Install python dependencies::
 
@@ -87,3 +89,17 @@ Testing
 Tests should be run with the testing settings file::
 
     ./manage.py test --settings=data-hub-api.settings.testing
+
+
+Requirements
+............
+
+Requirements are managed with ``pip-tools``. This is installed as part of the
+local requirements.
+
+To update a particular requirement, use ``make`` (or find the specific commands
+at the top of any of the ``.txt`` files).
+
+    pip install -r requirements/local.txt
+    cd requirements
+    make clean all

@@ -1,0 +1,5 @@
+-r base.in
+
+mock==1.3.0
+model-mommy==1.2.6
+responses==0.5.1
