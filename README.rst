@@ -93,7 +93,13 @@ Requirements
 Requirements are managed with ``pip-tools``. This is installed as part of the
 local requirements.
 
-To update a particular requirement, use ``make`` (or find the specific commands
-at the top of any of the ``.txt`` files)::
+To update all requirements, the default ``make`` command will clean out all
+``*.txt`` files and rebuild them all::
 
     make requirements
+
+To update a particular requirements file use ``make [file].txt`` (or find the
+specific commands at the top of any of the ``.txt`` files)::
+
+    cd requirements
+    make testing.txt

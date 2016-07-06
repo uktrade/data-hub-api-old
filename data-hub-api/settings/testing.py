@@ -2,8 +2,18 @@ from .base import *  # noqa
 
 
 INSTALLED_APPS += (
+    'django_nose',
     'migrator.tests',
 )
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--nologcapture',
+    '--with-doctest',
+    '--with-yanc',
+]
+
 
 CDMS_ADFS_URL = 'https://adfs.example.com'
 CDMS_BASE_URL = 'https://example.com'

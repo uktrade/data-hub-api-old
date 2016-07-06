@@ -1,4 +1,4 @@
-objects = base.in production.in testing.in local.in jenkins.in  # In order of dependency
+objects = base.in jenkins.in local.in production.in testing.in
 outputs := $(objects:.in=.txt)
 PIP_TOOLS_INSTALLED: ; @which pip-compile > /dev/null
 
