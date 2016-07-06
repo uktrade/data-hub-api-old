@@ -49,13 +49,9 @@ Clone the repository::
 Next, create the environment and start it up::
 
     cd data-hub-api
-    virtualenv env --python=python3.5
+    make venv
 
     source env/bin/activate
-
-Update pip to the required version::
-
-    pip install --upgrade pip==8.1.1
 
 Install python dependencies::
 
@@ -98,8 +94,6 @@ Requirements are managed with ``pip-tools``. This is installed as part of the
 local requirements.
 
 To update a particular requirement, use ``make`` (or find the specific commands
-at the top of any of the ``.txt`` files).
+at the top of any of the ``.txt`` files)::
 
-    pip install -r requirements/local.txt
-    cd requirements
-    make clean all
+    make requirements
