@@ -1,0 +1,11 @@
+machine:
+  python:
+    version: 3.5.1
+
+dependencies:
+  override:
+    - make install-test
+
+test:
+  override:
+    - make test

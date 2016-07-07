@@ -2,12 +2,22 @@ from .base import *  # noqa
 
 
 INSTALLED_APPS += (
+    'django_nose',
     'migrator.tests',
 )
 
-CDMS_ADFS_URL = 'https://adfs.testing.com'
-CDMS_BASE_URL = 'https://testing.com'
-CDMS_RSTS_URL = 'https://sso.testing.com'
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--nologcapture',
+    '--with-doctest',
+    '--with-yanc',
+]
+
+
+CDMS_ADFS_URL = 'https://adfs.example.com'
+CDMS_BASE_URL = 'https://example.com'
+CDMS_RSTS_URL = 'https://sso.example.com'
 CDMS_USERNAME = 'username'
 CDMS_PASSWORD = 'password'
 CDMS_COOKIE_KEY = b'RKfgWE-GYNy3mWHm5wEUZavralDzSMKDguBfyuBag8A='

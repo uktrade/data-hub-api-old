@@ -55,7 +55,9 @@ venv
 *.iml
 *.iws
 
+# settings files
 data-hub-api/settings/local.py
+data-hub-api/settings/testing-local.py
 
 # collect static output directory
 data-hub-api/assets/

@@ -11,7 +11,9 @@ Dependencies
 
 - (non-essential) `Virtualenv <http://www.virtualenv.org/en/latest/>`_
 
-- (non-essential) `Most recent version of pip`
+- Pip 8.1.1. This particular version is advanced enough to be used by
+  `pip-tools <https://github.com/nvie/pip-tools`_, but not too advanced that
+  the latest version breaks it.
 
 - `Python 3.5 <http://www.python.org/>`_ (Can be installed using ``brew``)
 
@@ -47,13 +49,9 @@ Clone the repository::
 Next, create the environment and start it up::
 
     cd data-hub-api
-    virtualenv env --python=python3.5
+    make venv
 
     source env/bin/activate
-
-Update pip to the latest version::
-
-    pip install -U pip
 
 Install python dependencies::
 
@@ -87,3 +85,25 @@ Testing
 Tests should be run with the testing settings file::
 
     ./manage.py test --settings=data-hub-api.settings.testing
+
+
+Requirements
+............
+
+Requirements are managed with ``pip-tools``. This is installed as part of the
+local requirements.
+
+To update all requirements (including updating all packages that are not pinned
+in the ``.in`` file with a particular version number), the default ``make``
+command will clean out all ``*.txt`` files and rebuild them all::
+
+    make requirements
+
+To update a particular requirements file use ``make [file].txt`` (or find the
+specific commands at the top of any of the ``.txt`` files)::
+
+    cd requirements
+    make testing.txt
+
+Recompiling a single ``.txt`` file will maintain the package versions that it
+contains and just update any new / remove any missing packages.

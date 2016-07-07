@@ -22,18 +22,6 @@ DATABASES = {
 }
 
 
-# You might want to use sqlite3 for testing in local as it's much faster.
-if IN_TESTING:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/data-hub-api_test.db',
-            'TEST': {
-                'SERIALIZE': False,
-            },
-        }
-    }
-
 INSTALLED_APPS += [
     'django_extensions'
 ]
