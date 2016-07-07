@@ -8,4 +8,4 @@ dependencies:
 
 test:
   override:
-    - python manage.py test --settings=data-hub-api.settings.testing
+    - make test
