@@ -93,8 +93,9 @@ Requirements
 Requirements are managed with ``pip-tools``. This is installed as part of the
 local requirements.
 
-To update all requirements, the default ``make`` command will clean out all
-``*.txt`` files and rebuild them all::
+To update all requirements (including updating all packages that are not pinned
+in the ``.in`` file with a particular version number), the default ``make``
+command will clean out all ``*.txt`` files and rebuild them all::
 
     make requirements
 
@@ -103,3 +104,6 @@ specific commands at the top of any of the ``.txt`` files)::
 
     cd requirements
     make testing.txt
+
+Recompiling a single ``.txt`` file will maintain the package versions that it
+contains and just update any new / remove any missing packages.
