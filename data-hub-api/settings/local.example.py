@@ -23,12 +23,13 @@ DATABASES = {
 
 
 INSTALLED_APPS += [
-    'django_extensions'
+    'django_extensions'  # This isn't in the requirements, so if you want to
+                         # use it you should install it.
 ]
 
 
 CDMS_ADFS_URL = ''
-CDMS_BASE_URL = ''
+CDMS_BASE_URL = ''  # everything up to the '/XRMServices' part of the API URL
 CDMS_USERNAME = ''
 CDMS_PASSWORD = ''
 CDMS_COOKIE_KEY = b'RKfgWE-GYNy3mWHm5wEUZavralDzSMKDguBfyuBag8A='
