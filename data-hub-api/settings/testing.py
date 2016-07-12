@@ -1,7 +1,7 @@
 from .base import *  # noqa
 
 
-INSTALLED_APPS += (
+INSTALLED_APPS += (  # noqa
     'django_nose',
     'migrator.tests',
 )

@@ -18,3 +18,6 @@ requirements:
 # * Target tests: data-hub-api/apps, nose can't find the tests by default.
 test:
 	./manage.py test --settings=data-hub-api.settings.testing -I models.py -I __init__.py data-hub-api/apps
+
+lint:
+	flake8 data-hub-api

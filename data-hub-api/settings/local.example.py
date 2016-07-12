@@ -22,7 +22,7 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS += [
+INSTALLED_APPS += [  # noqa
     'django_extensions'  # This isn't in the requirements, so if you want to
                          # use it you should install it.
 ]
