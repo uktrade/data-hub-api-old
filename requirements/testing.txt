@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file testing.txt testing.in
 #
+
 cffi==1.7.0               # via cryptography
 cookies==2.2.1            # via responses
 cryptography==1.3.1
@@ -14,17 +15,21 @@ django-model-utils==2.4
 django-nose==1.4.4
 django-reversion==1.10.1
 Django==1.9.4             # via django-model-utils, django-reversion, model-mommy
+flake8==2.6.2
 future==0.15.2            # via django-extended-choices
 idna==2.1                 # via cryptography
 inflection==0.3.1
 lxml==3.6.0               # via pyquery
+mccabe==0.5.0             # via flake8
 mock==1.3.0
 model-mommy==1.2.6
 nose==1.3.7               # via django-nose
 pbr==1.10.0               # via mock
 psycopg2==2.6.1
 pyasn1==0.1.9             # via cryptography
+pycodestyle==2.0.0        # via flake8
 pycparser==2.14           # via cffi
+pyflakes==1.2.3           # via flake8
 pyquery==1.2.11
 pytz==2016.2
 PyYAML==3.11
