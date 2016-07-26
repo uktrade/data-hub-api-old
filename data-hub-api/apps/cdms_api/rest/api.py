@@ -7,8 +7,13 @@ from django.core.exceptions import ImproperlyConfigured
 
 from pyquery import PyQuery
 
-from ..exceptions import ErrorResponseException, CDMSUnauthorizedException, CDMSNotFoundException, \
-    LoginErrorException, UnexpectedResponseException
+from ..exceptions import (
+    ErrorResponseException,
+    CDMSUnauthorizedException,
+    CDMSNotFoundException,
+    LoginErrorException,
+    UnexpectedResponseException,
+)
 from ..cookie_storage import CookieStorage
 
 
@@ -16,7 +21,10 @@ logger = logging.getLogger('cmds_api.rest.api')
 
 
 class CDMSRestApi(object):
-    CRM_REST_BASE_URL = '%s/XRMServices/2011/OrganizationData.svc' % settings.CDMS_BASE_URL
+    CRM_REST_BASE_URL = '/'.join([
+        settings.CDMS_BASE_URL.rstrip('/'),
+        'XRMServices/2011/OrganizationData.svc'
+    ])
 
     EXCEPTIONS_MAP = {
         401: CDMSUnauthorizedException,
