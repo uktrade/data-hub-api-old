@@ -82,9 +82,10 @@ Start the server::
 Testing
 .......
 
-Tests should be run with the testing settings file::
+Tests should be run by typing a command into your computer terminal. That
+command is this::
 
-    ./manage.py test --settings=data-hub-api.settings.testing
+    make test
 
 
 Requirements
