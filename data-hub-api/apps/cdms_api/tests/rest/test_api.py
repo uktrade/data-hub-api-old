@@ -13,24 +13,7 @@ from cdms_api.rest.api import CDMSRestApi
 from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
     CDMSNotFoundException, ErrorResponseException
-
-
-class BaseCDMSRestApiTestCase(TestCase):
-
-    def setUp(self):
-        """
-        Assert no cookies exist before running tests
-        """
-        super().setUp()
-        self.cookie_storage = CookieStorage()
-        self.assertFalse(self.cookie_storage.exists())
-
-    def tearDown(self):
-        """
-        Delete any cookies created during tests
-        """
-        self.cookie_storage.reset()
-        super().tearDown()
+from .base_cdms_rest_api_test_case import BaseCDMSRestApiTestCase
 
 
 class SetUpTestCase(BaseCDMSRestApiTestCase):
