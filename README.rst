@@ -87,6 +87,8 @@ command is this::
 
     make test
 
+There is further documentation about running tests in ``Makefile``.
+
 
 Requirements
 ............
