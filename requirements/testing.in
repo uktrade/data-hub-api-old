@@ -4,5 +4,6 @@ django-nose
 flake8
 mock
 model-mommy
+pyslet
 responses
 yanc

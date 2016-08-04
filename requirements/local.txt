@@ -53,6 +53,7 @@ pycparser==2.14           # via cffi
 pyflakes==1.2.3           # via flake8
 Pygments==2.1.3           # via ipython, sphinx
 pyquery==1.2.11
+pyslet==0.6.20160201
 pytz==2016.2
 PyYAML==3.11              # via sphinx-autobuild, watchdog
 requests==2.9.1
