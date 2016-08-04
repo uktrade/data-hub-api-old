@@ -36,16 +36,6 @@ def main(schema_name):
             )
         )
 
-        '''
-        indices = []  # where we need to put add an ADD
-        for index, token in enumerate(constraints):
-            if token.match(sqlparse.tokens.Keyword, 'CONSTRAINT'):
-                indices.append(index)
-
-        for index in indices[1:]:
-            constraints.insert(index, ' , ADD')
-        '''
-
         alters.append(
             '''ALTER TABLE "{0}" {1};'''.format(
                 table_name, ''.join(map(str, constraints))
