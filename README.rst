@@ -82,16 +82,23 @@ Start the server::
 Testing
 .......
 
-Tests should be run with the testing settings file::
+Tests should be run by typing a command into your computer terminal. That
+command is this::
 
-    ./manage.py test --settings=data-hub-api.settings.testing
+    make test
+
+There is further documentation about running tests in ``Makefile``.
 
 
 Requirements
 ............
 
-Requirements are managed with ``pip-tools``. This is installed as part of the
-local requirements.
+Requirements are managed with ``pip-tools``, and the packages required are
+defined in ``*.in`` files instead of ``requirements*.txt`` files. The
+``pip-tools`` suite is installed as part of the local requirements.
+
+To add a dependency, locate the appropriate ``*.in`` file and add there as you
+would with a standard Pip requirements file.
 
 To update all requirements (including updating all packages that are not pinned
 in the ``.in`` file with a particular version number), the default ``make``
