@@ -159,7 +159,7 @@ class CDMSRestApi(object):
         self._submit_form(session, resp.content)
         return session
 
-    def make_request(self, verb, url, data={}):
+    def make_request(self, verb, url, data=dict()):
         """
         Makes the call to CDMS, if 401 is found, it reauthenticates
         and tries again making the same call
@@ -171,7 +171,7 @@ class CDMSRestApi(object):
             self.setup_session(force=True)
         return self._make_request(verb, url, data=data)
 
-    def _make_request(self, verb, url, data={}):
+    def _make_request(self, verb, url, data=dict()):
         logger.debug('Calling CDMS url (%s) on %s' % (verb, url))
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
