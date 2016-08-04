@@ -67,8 +67,9 @@ class PgSQLEntityContainer(sqlds.SQLEntityContainer):
 
     def open(self):
         'Calls the underlying connect method.'
-        dbc = self.dbapi.connect(**self.pgsql_options)
-        return dbc
+        # we don't need to connect, this code is only used for dumping SQL
+        # dbc = self.dbapi.connect(**self.pgsql_options)
+        # return dbc
 
     def break_connection(self, connection):
         'Calls the underlying interrupt method.'
