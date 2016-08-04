@@ -23,9 +23,9 @@
 #
 
 import psycopg2
-from pyslet.odata2.sqlds import *
+from pyslet.odata2 import sqlds
 
-class PgSQLEntityContainer(SQLEntityContainer):
+class PgSQLEntityContainer(sqlds.SQLEntityContainer):
 
     """Creates a container that represents a PgSQL database.
 
@@ -186,7 +186,7 @@ class PgSQLEntityContainer(SQLEntityContainer):
             )
 
 
-class PgSQLEntityCollectionBase(SQLCollectionBase):
+class PgSQLEntityCollectionBase(sqlds.SQLCollectionBase):
     '''
     Base class for PgSQL SQL custom mappings.
 
@@ -237,26 +237,26 @@ class PgSQLEntityCollectionBase(SQLCollectionBase):
         return ''.join(query)  # don't bother with brackets!
 
 
-class PgSQLEntityCollection(PgSQLEntityCollectionBase, SQLEntityCollection):
+class PgSQLEntityCollection(PgSQLEntityCollectionBase, sqlds.SQLEntityCollection):
     'PgSQL-specific collection for entity sets'
     pass
 
-class PgSQLAssociationCollection(PgSQLEntityCollectionBase, SQLAssociationCollection):
+class PgSQLAssociationCollection(PgSQLEntityCollectionBase, sqlds.SQLAssociationCollection):
     'PgSQL-specific collection for symmetric association sets'
     pass
 
 
-class PgSQLForeignKeyCollection(PgSQLEntityCollectionBase, SQLForeignKeyCollection):
+class PgSQLForeignKeyCollection(PgSQLEntityCollectionBase, sqlds.SQLForeignKeyCollection):
     'PgSQL-specific collection for navigation from a foreign key'
     pass
 
 
-class PgSQLReverseKeyCollection(PgSQLEntityCollectionBase, SQLReverseKeyCollection):
+class PgSQLReverseKeyCollection(PgSQLEntityCollectionBase, sqlds.SQLReverseKeyCollection):
     'PgSQL-specific collection for navigation to a foreign key'
     pass
 
 
-class PyFormatParams(SQLParams):
+class PyFormatParams(sqlds.SQLParams):
     'A class for building parameter lists using ":1", ":2",... syntax'
 
     def __init__(self):
