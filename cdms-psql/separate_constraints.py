@@ -7,9 +7,8 @@ def is_create(token):
 def is_parens(token):
     return isinstance(token, sqlparse.sql.Parenthesis)
 
-def main():
-    # with open('cdms-pgsql.sql', 'r') as schema_fh:
-    with open('SystemUserSet.sql', 'r') as schema_fh:
+def main(name):
+    with open(name, 'r') as schema_fh:
         parsed = sqlparse.parse(schema_fh.read())
 
     creates = []
@@ -22,7 +21,7 @@ def main():
             if token.match(sqlparse.tokens.Keyword, 'CONSTRAINT'):
                 # happily, pyslet arranges constraints to be at the end, so we
                 # can just bisect the token list
-                columns = original_columns.tokens[:index]
+                columns = original_columns.tokens[:index - 2]  # strip comma
                 constraints = original_columns.tokens[index:]
                 break
         else:
@@ -30,19 +29,31 @@ def main():
             # create statement
             creates.append(str(original_create))
             continue
+
         creates.append(
             "CREATE TABLE {0} {1});".format(
                 name, ''.join(map(str, columns))
             )
         )
+
+        '''
+        indices = []  # where we need to put add an ADD
+        for index, token in enumerate(constraints):
+            if token.match(sqlparse.tokens.Keyword, 'CONSTRAINT'):
+                indices.append(index)
+
+        for index in indices[1:]:
+            constraints.insert(index, ' , ADD')
+        '''
+
         alters.append(
-            "ALTER TABLE {0} ({1}".format(
+            "ALTER TABLE {0} ({1};".format(
                 name, ''.join(map(str, constraints))
-            )
+            ).replace('CONSTRAINT', 'ADD CONSTRAINT')
         )
     list(map(print, creates))
     list(map(print, alters))
 
 
 if __name__ == '__main__':
-    main()
+    main('./Contactcontactorders_associationSalesOrder.sql')
