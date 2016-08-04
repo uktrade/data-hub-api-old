@@ -22,7 +22,7 @@ def main(schema_name):
                 # happily, pyslet arranges constraints to be at the end, so we
                 # can just bisect the token list
                 columns = original_columns[:index - 2]  # strip comma
-                constraints = original_columns[index:]
+                constraints = original_columns[index:-1]
                 break
         else:
             # this table doesn't have any constraints, let's keep the original
@@ -47,3 +47,5 @@ def main(schema_name):
 
 if __name__ == '__main__':
     main('./cdms-pgsql.sql')
+    # main('./Contactcontactorders_associationSalesOrder.sql')
+    # main('./SystemUserSet.sql')
