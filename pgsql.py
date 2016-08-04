@@ -24,6 +24,7 @@
 
 import psycopg2
 from pyslet.odata2 import sqlds
+import pyslet.odata2.csdl as edm
 
 class PgSQLEntityContainer(sqlds.SQLEntityContainer):
 
