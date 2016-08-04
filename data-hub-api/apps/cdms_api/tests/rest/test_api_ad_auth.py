@@ -1,16 +1,14 @@
 import os
 import responses
 import json
-import pickle
 from urllib.parse import urlparse
 
 from django.template import Engine, Context
 from django.conf import settings
-from django.test.testcases import TestCase
+from django.test import override_settings
 from django.core.exceptions import ImproperlyConfigured
 
 from cdms_api.rest.api import CDMSRestApi
-from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
     CDMSNotFoundException, ErrorResponseException
 from .base_cdms_rest_api_test_case import BaseCDMSRestApiTestCase
@@ -232,7 +230,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
             index = 0
 
             def wrapper(request):
-                nonlocal index  # flake8: noqa
+                nonlocal index
                 status_code = 200 if index else 401
                 index += 1
                 return (status_code, [], json.dumps({'d': body_response}))
