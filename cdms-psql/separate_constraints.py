@@ -31,7 +31,7 @@ def main(schema_name):
             continue
 
         creates.append(
-            "CREATE TABLE {0} {1});".format(
+            '''CREATE TABLE "{0}" {1});'''.format(
                 table_name, ''.join(map(str, columns))
             )
         )
@@ -47,7 +47,7 @@ def main(schema_name):
         '''
 
         alters.append(
-            "ALTER TABLE {0} ({1};".format(
+            '''ALTER TABLE "{0}" {1};'''.format(
                 table_name, ''.join(map(str, constraints))
             ).replace('CONSTRAINT', 'ADD CONSTRAINT')
         )
