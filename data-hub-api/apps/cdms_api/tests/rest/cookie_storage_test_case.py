@@ -3,7 +3,7 @@ from django.test import TestCase
 from cdms_api.cookie_storage import CookieStorage
 
 
-class BaseCDMSRestApiTestCase(TestCase):
+class CookieStorageTestCase(TestCase):
 
     def setUp(self):
         """

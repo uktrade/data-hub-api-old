@@ -11,10 +11,10 @@ from django.core.exceptions import ImproperlyConfigured
 from cdms_api.rest.api import CDMSRestApi
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
     CDMSNotFoundException, ErrorResponseException
-from .base_cdms_rest_api_test_case import BaseCDMSRestApiTestCase
+from .cookie_storage_test_case import CookieStorageTestCase
 
 
-class TestSetUp(BaseCDMSRestApiTestCase):
+class TestSetUp(CookieStorageTestCase):
 
     @override_settings(
         CDMS_ADFS_URL='',
@@ -134,7 +134,7 @@ class MockedResponseMixin(object):
         })
 
 
-class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
     @responses.activate
     def test_invalid_credentials(self):
         """
@@ -215,7 +215,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.assertTrue(api.session)
 
 
-class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class MakeRequestTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(MakeRequestTestCase, self).setUp()
         self.mock_cookie()
@@ -302,7 +302,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class ListTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class ListTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(ListTestCase, self).setUp()
         self.mock_cookie()
@@ -357,7 +357,7 @@ class ListTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class GetTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class GetTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(GetTestCase, self).setUp()
         self.mock_cookie()
@@ -379,7 +379,7 @@ class GetTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.assertEqual(resp, 'something')
 
 
-class UpdateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class UpdateTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(UpdateTestCase, self).setUp()
         self.mock_cookie()
@@ -406,7 +406,7 @@ class UpdateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class CreateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class CreateTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(CreateTestCase, self).setUp()
         self.mock_cookie()
@@ -431,7 +431,7 @@ class CreateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class DeleteTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class DeleteTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(DeleteTestCase, self).setUp()
         self.mock_cookie()

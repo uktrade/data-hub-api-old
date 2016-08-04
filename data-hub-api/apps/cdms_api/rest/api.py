@@ -20,7 +20,28 @@ from ..cookie_storage import CookieStorage
 logger = logging.getLogger('cmds_api.rest.api')
 
 
+class ActiveDirectoryAuth:
+    """
+    Handle authentication via Active Directory using form submission, cookie
+    retrieval and storage.
+    """
+
+    def __init__(self):
+        """
+        Raises:
+            ImproperlyConfigured: If `CDMS_ADFS_URL` or `CDMS_BASE_URL` are not
+                provided via Django settings.
+        """
+        for setting_name in ['CDMS_ADFS_URL', 'CDMS_BASE_URL', 'CDMS_USERNAME', 'CDMS_PASSWORD']:
+            if not getattr(settings, setting_name):
+                raise ImproperlyConfigured('{} setting required'.format(setting_name))
+
+
 class CDMSRestApi(object):
+    """
+    Instance of a connection to the Microsoft Dynamics 2011 REST API.
+    """
+
     CRM_REST_BASE_URL = '/'.join([
         settings.CDMS_BASE_URL.rstrip('/'),
         'XRMServices/2011/OrganizationData.svc'
@@ -32,10 +53,7 @@ class CDMSRestApi(object):
     }
 
     def __init__(self):
-        if not settings.CDMS_BASE_URL or not settings.CDMS_ADFS_URL:
-            raise ImproperlyConfigured('Please set CDMS_BASE_URL and CDMS_ADFS_URL in your settings.')
-        if not settings.CDMS_USERNAME or not settings.CDMS_PASSWORD:
-            raise ImproperlyConfigured('Please set CDMS_USERNAME and CDMS_PASSWORD in your settings.')
+        self.auth = ActiveDirectoryAuth()
 
         self.cookie_storage = CookieStorage()
         self.setup_session()
