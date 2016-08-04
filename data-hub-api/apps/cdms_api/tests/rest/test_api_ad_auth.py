@@ -134,43 +134,48 @@ class MockedResponseMixin(object):
         })
 
 
+@responses.activate
 class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
-    @responses.activate
+
     def test_invalid_credentials(self):
         """
-        In case of invalid credentials, the constructor should raise LoginErrorException.
+        CDMSRestApi raises LoginErrorException on init when un/pw are invalid
         """
         self.mock_initial_login()
         self.mock_login_step(1, errors=True)
 
-        self.assertRaises(LoginErrorException, CDMSRestApi)
+        with self.assertRaises(LoginErrorException):
+            CDMSRestApi()
 
-    @responses.activate
     def test_first_successful_login(self):
         """
-        When logging in for the first time (=> no cookie exists), the constructor should log in and save
-        the valid cookie on the filesystem.
-        """
-        self.assertFalse(self.cookie_storage.exists())
+        CDMSRestApi logs in using AD on init
 
+        When logging in for the first time (=> no cookie exists), the
+        constructor logs in and saves the valid cookie on the filesystem.
+        """
         self.mock_initial_login()
         self.mock_login_step(1)
         self.mock_login_step(2)
         self.mock_login_step(3)
 
         api = CDMSRestApi()
-        self.assertTrue(self.cookie_storage.exists())
-        self.assertTrue(api.session)
 
-    @responses.activate
+        self.assertTrue(self.cookie_storage.exists())
+        self.assertTrue(api.auth.session)
+
     def test_exception_with_initial_form(self):
         """
-        In case of exception with the initial login url, the constructor should raise UnexpectedResponseException.
+        CDMSRestApi raises if AD login returns 500
+
+        In case of exception with the initial login url, the constructor should
+        raise UnexpectedResponseException.
         """
         self.mock_initial_login(status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
+        with self.assertRaises(UnexpectedResponseException):
+            CDMSRestApi()
+
     def test_exception_with_auth_step_1_form(self):
         """
         In case of exception with the step 1 of the auth process, the constructor should
@@ -180,7 +185,6 @@ class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
         self.mock_login_step(1, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_exception_with_auth_step_2_form(self):
         """
         In case of exception with the step 2 of the auth process, the constructor should
@@ -191,7 +195,6 @@ class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
         self.mock_login_step(2, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_exception_with_final_form(self):
         """
         In case of exception with the final step of the auth process, the constructor should
@@ -203,7 +206,6 @@ class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
         self.mock_login_step(3, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_reuse_existing_cookie(self):
         """
         If the cookie file exists, use that without making any auth calls.
@@ -251,7 +253,7 @@ class MakeRequestTestCase(MockedResponseMixin, CookieStorageTestCase):
         api = CDMSRestApi()
         resp = api.make_request('get', url)
         self.assertEqual(resp, body_response)
-        self.assertTrue(api.session)
+        self.assertTrue(api.auth.session)
 
     @responses.activate
     def test_setup_session_tries_only_once_if_cookie_expired(self):

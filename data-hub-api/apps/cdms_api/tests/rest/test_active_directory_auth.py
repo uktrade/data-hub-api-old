@@ -1,19 +1,26 @@
+import unittest
+
 from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
+from ...cookie_storage import CookieStorage
 from ...rest.api import ActiveDirectoryAuth
 from .cookie_storage_test_case import CookieStorageTestCase
 
 
 class TestInit(CookieStorageTestCase):
 
-    def test_happy(self):
+    @unittest.mock.patch.object(ActiveDirectoryAuth, 'setup_session', auto_spec=True)
+    def test_happy(self, m_setup_session):
         """
         ActiveDirectoryAuth can be initialised with default settings
 
-        Cookie storage and session are initialised.
+        Cookie storage is initialised, `setup_session` is called.
         """
-        ActiveDirectoryAuth()
+        result = ActiveDirectoryAuth()
+
+        self.assertIsInstance(result.cookie_storage, CookieStorage)
+        m_setup_session.assert_called_once_with()
 
     @override_settings(CDMS_ADFS_URL='')
     def test_missing_adfs_url(self):
