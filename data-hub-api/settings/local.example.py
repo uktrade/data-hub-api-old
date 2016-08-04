@@ -22,10 +22,7 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS += [  # noqa
-    'django_extensions'  # This isn't in the requirements, so if you want to
-                         # use it you should install it.
-]
+INSTALLED_APPS += []
 
 
 CDMS_ADFS_URL = ''
