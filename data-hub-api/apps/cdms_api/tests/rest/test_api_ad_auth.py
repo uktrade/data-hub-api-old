@@ -14,30 +14,33 @@ from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException
 from .base_cdms_rest_api_test_case import BaseCDMSRestApiTestCase
 
 
-class SetUpTestCase(BaseCDMSRestApiTestCase):
+class TestSetUp(BaseCDMSRestApiTestCase):
+
+    @override_settings(
+        CDMS_ADFS_URL='',
+        CDMS_BASE_URL='',
+        CDMS_USERNAME='username',
+        CDMS_PASSWORD='password',
+    )
     def test_exception_if_urls_not_configured(self):
         """
-        If CDMS settings are left blank, the constructor should raise ImproperlyConfigured.
+        CDMSRestApi raises when CDMS URL settings are left blank
         """
-        with self.settings(
-            CDMS_ADFS_URL='',
-            CDMS_BASE_URL='',
-            CDMS_USERNAME='username',
-            CDMS_PASSWORD='password'
-        ):
-            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
+        with self.assertRaises(ImproperlyConfigured):
+            CDMSRestApi()
 
+    @override_settings(
+        CDMS_ADFS_URL='adfs_url',
+        CDMS_BASE_URL='base_url',
+        CDMS_USERNAME='',
+        CDMS_PASSWORD='',
+    )
     def test_exception_if_credentials_configured(self):
         """
-        If CDMS credentials are left blank, the constructor should raise ImproperlyConfigured.
+        CDMSRestApi raises when CDMS un / pw settings are left blank
         """
-        with self.settings(
-            CDMS_ADFS_URL='adfs_url',
-            CDMS_BASE_URL='base_url',
-            CDMS_USERNAME='',
-            CDMS_PASSWORD=''
-        ):
-            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
+        with self.assertRaises(ImproperlyConfigured):
+            CDMSRestApi()
 
 
 class MockedResponseMixin(object):
