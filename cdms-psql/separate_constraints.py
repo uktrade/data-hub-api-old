@@ -7,22 +7,22 @@ def is_create(token):
 def is_parens(token):
     return isinstance(token, sqlparse.sql.Parenthesis)
 
-def main(name):
-    with open(name, 'r') as schema_fh:
+def main(schema_name):
+    with open(schema_name, 'r') as schema_fh:
         parsed = sqlparse.parse(schema_fh.read())
 
     creates = []
     alters = []
 
     for original_create in filter(is_create, parsed):
-        name = original_create.get_name()
-        original_columns = next(filter(is_parens, original_create.tokens))
-        for index, token in enumerate(original_columns.tokens):
+        table_name = original_create.get_name()
+        original_columns = list(next(filter(is_parens, original_create.tokens)).flatten())
+        for index, token in enumerate(original_columns):
             if token.match(sqlparse.tokens.Keyword, 'CONSTRAINT'):
                 # happily, pyslet arranges constraints to be at the end, so we
                 # can just bisect the token list
-                columns = original_columns.tokens[:index - 2]  # strip comma
-                constraints = original_columns.tokens[index:]
+                columns = original_columns[:index - 2]  # strip comma
+                constraints = original_columns[index:]
                 break
         else:
             # this table doesn't have any constraints, let's keep the original
@@ -32,7 +32,7 @@ def main(name):
 
         creates.append(
             "CREATE TABLE {0} {1});".format(
-                name, ''.join(map(str, columns))
+                table_name, ''.join(map(str, columns))
             )
         )
 
@@ -48,7 +48,7 @@ def main(name):
 
         alters.append(
             "ALTER TABLE {0} ({1};".format(
-                name, ''.join(map(str, constraints))
+                table_name, ''.join(map(str, constraints))
             ).replace('CONSTRAINT', 'ADD CONSTRAINT')
         )
     list(map(print, creates))
@@ -56,4 +56,4 @@ def main(name):
 
 
 if __name__ == '__main__':
-    main('./Contactcontactorders_associationSalesOrder.sql')
+    main('./cdms-pgsql.sql')
