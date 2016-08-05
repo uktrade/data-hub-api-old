@@ -4,7 +4,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import override_settings
 
 from ...cookie_storage import CookieStorage
-from ...rest.api import ActiveDirectoryAuth
+from ...rest.auth.active_directory import ActiveDirectoryAuth
 from .cookie_storage_test_case import CookieStorageTestCase
 
 
