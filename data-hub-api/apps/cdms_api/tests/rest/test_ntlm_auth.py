@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core.exceptions import ImproperlyConfigured
 from django.test.testcases import TestCase, override_settings
 from requests import Session
@@ -46,3 +48,59 @@ class TestInit(TestCase):
             NTLMAuth()
 
         self.assertIn('CDMS_PASSWORD', context_manager.exception.args[0])
+
+
+class TestMakeRequest(TestCase):
+    """
+    Simple mocked test to ensure that parts are in place.
+    """
+
+    expected_headers = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+    }
+
+    def setUp(self):
+        """
+        Set up request's Session object to have a mocked out 'get' function
+        verb that returns a simple string as response.
+        """
+        super().setUp()
+        self.auth = NTLMAuth()
+        p_get = patch.object(Session, 'get', autospec=True)
+        self.m_get = p_get.start()
+        self.m_get.return_value = '__RESPONSE__'
+        self.addCleanup(p_get.stop)
+
+    def test_get_passthrough(self):
+        """
+        NTLMAuth make_request does GET with no data using its session
+        """
+        result = self.auth.make_request('get', '__URL__')
+
+        self.assertEqual(result, '__RESPONSE__')
+        self.m_get.assert_called_once_with(
+            self.auth.session,
+            '__URL__',
+            data={},
+            headers=self.expected_headers,
+        )
+
+    def test_get_passthrough_data(self):
+        """
+        NTLMAuth make_request does GET with data encoded using its session
+        """
+        data = {
+            '__KEY__': '__VALUE__',
+        }
+
+        result = self.auth.make_request('get', '__URL__', data=data)
+
+        self.assertEqual(result, '__RESPONSE__')
+        expected_data = '{"__KEY__": "__VALUE__"}'
+        self.m_get.assert_called_once_with(
+            self.auth.session,
+            '__URL__',
+            data=expected_data,
+            headers=self.expected_headers,
+        )
