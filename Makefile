@@ -1,8 +1,7 @@
 .PHONY: venv install install-test requirements test
 
 venv:
-	virtualenv venv --python=python3
-	. venv/bin/activate && pip install pip==8.1.1  # Pin pip to pip-tools required version
+	virtualenv venv --python=python3.5
 
 install:
 	pip install -r requirements/base.txt
