@@ -22,7 +22,7 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS += []
+INSTALLED_APPS += []  # NOQA
 
 
 CDMS_ADFS_URL = ''
