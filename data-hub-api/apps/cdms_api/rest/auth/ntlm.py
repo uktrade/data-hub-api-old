@@ -41,4 +41,9 @@ class NTLMAuth:
         else:
             data = json.dumps(data)
 
-        return getattr(self.session, verb)(url, data=data, headers=headers)
+        resp = getattr(self.session, verb)(url, data=data, headers=headers)
+
+        if resp.status_code in (200, 201):
+            return resp.json()['d']
+
+        return resp

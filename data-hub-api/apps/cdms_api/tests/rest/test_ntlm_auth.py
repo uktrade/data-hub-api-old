@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.core.exceptions import ImproperlyConfigured
 from django.test.testcases import TestCase, override_settings
@@ -69,16 +69,19 @@ class TestMakeRequest(TestCase):
         self.auth = NTLMAuth()
         p_get = patch.object(Session, 'get', autospec=True)
         self.m_get = p_get.start()
-        self.m_get.return_value = '__RESPONSE__'
+        self.response = Mock(name='Response')
+        self.m_get.return_value = self.response
         self.addCleanup(p_get.stop)
 
     def test_get_passthrough(self):
         """
         NTLMAuth make_request does GET with no data using its session
         """
+        self.response.status_code = 404
+
         result = self.auth.make_request('get', '__URL__')
 
-        self.assertEqual(result, '__RESPONSE__')
+        self.assertEqual(result, self.response)
         self.m_get.assert_called_once_with(
             self.auth.session,
             '__URL__',
@@ -90,13 +93,14 @@ class TestMakeRequest(TestCase):
         """
         NTLMAuth make_request does GET with data encoded using its session
         """
+        self.response.status_code = 404
         data = {
             '__KEY__': '__VALUE__',
         }
 
         result = self.auth.make_request('get', '__URL__', data=data)
 
-        self.assertEqual(result, '__RESPONSE__')
+        self.assertEqual(result, self.response)
         expected_data = '{"__KEY__": "__VALUE__"}'
         self.m_get.assert_called_once_with(
             self.auth.session,
@@ -104,3 +108,16 @@ class TestMakeRequest(TestCase):
             data=expected_data,
             headers=self.expected_headers,
         )
+
+    def test_get_return_data(self):
+        """
+        NTLMAuth make_request returns 'd' content of json on success
+        """
+        self.response.status_code = 200
+        self.response.json.return_value = {
+            'd': '__DATA__',
+        }
+
+        result = self.auth.make_request('get', '__URL__')
+
+        self.assertEqual(result, '__DATA__')
