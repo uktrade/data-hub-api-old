@@ -22,13 +22,11 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS += [
-    'django_extensions'
-]
+INSTALLED_APPS += []  # NOQA
 
 
 CDMS_ADFS_URL = ''
-CDMS_BASE_URL = ''
+CDMS_BASE_URL = ''  # everything up to the '/XRMServices' part of the API URL
 CDMS_USERNAME = ''
 CDMS_PASSWORD = ''
 CDMS_COOKIE_KEY = b'RKfgWE-GYNy3mWHm5wEUZavralDzSMKDguBfyuBag8A='

@@ -1,7 +1,8 @@
 -r testing.in
 
-Sphinx==1.4
-sphinx-rtd-theme==0.1.9
-sphinx-autobuild==0.6.0
-
+Sphinx
+ipython
+isort
 pip-tools
+sphinx-autobuild
+sphinx-rtd-theme

@@ -7,5 +7,7 @@ dependencies:
     - make install-test
 
 test:
+  pre:
+    - make lint
   override:
     - make test
