@@ -1,0 +1,3 @@
+git+https://github.com/swl10/pyslet.git@ef27dd6#egg=pyslet
+sqlparse
+pytest
