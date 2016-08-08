@@ -1,27 +1,8 @@
-import os
-import tempfile
-
-import pyslet.odata2.metadata as edmx
-import pgsql
+from odata_sql_schema import main as odata_sql_schema
+from separate_constraints import main as separate_constraints
 
 
-
-def main():
+def main(name_in, name_out):
     'Convert OData metadata.xml to SQL schema'
-    doc = edmx.Document()
-    with open('cdms-metadata.xml', 'rb') as metadata_fh:
-        doc.read(metadata_fh)  # would love to be able to cache this but
-                               # the `doc` object won't pickle
-    entity_container_key = 'Microsoft.Crm.Sdk.Data.Services.UKTIContext'
-    entity_container = doc.root.DataServices[entity_container_key]
-    # we don't define pgsql_options arg here, since the sql won't load directly
-    # into a database due to lack of dependency resultion
-    container = pgsql.PgSQLEntityContainer(container=entity_container)
-    with open('cdms-pgsql.sql', 'w') as cdmspgsql_fh:
-        # instead we just dump out the sql statements to
-        # a file for manual re-ordering
-        container.create_all_tables(out=cdmspgsql_fh)
-    # done
-
-if __name__ == '__main__':
-    main()
+    with open(name_out, 'w') as cdmspsql_fh:
+        cdmspsql_fh.write(separate_constraints(odata_sql_schema(name_in)))

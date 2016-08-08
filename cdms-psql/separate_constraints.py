@@ -2,12 +2,25 @@ import sqlparse
 
 
 def is_create(token):
+    'Return a boolean representation of whether a token is a CREATE statement'
     return token.get_type() == 'CREATE'
 
 def is_parens(token):
+    'Return a boolean representation of whether a token is a parenthesis'
     return isinstance(token, sqlparse.sql.Parenthesis)
 
+OUTPUT_TEMPLATE = '{0}\n{1}\n'
+
+
 def main(schema_name):
+    '''
+    Open the SQL schema at the passed file name and return the same schema
+    transformed such that foreign key constraints appear onlyl after table
+    creation statements.
+
+    NOTE: It is assumed that the SQL is the result of running the script in
+    odata_sql_schema.py; ie. it's SQL output by PySLET.
+    '''
     with open(schema_name, 'r') as schema_fh:
         parsed = sqlparse.parse(schema_fh.read())
 
@@ -41,11 +54,7 @@ def main(schema_name):
                 table_name, ''.join(map(str, constraints))
             ).replace('CONSTRAINT', 'ADD CONSTRAINT')
         )
-    list(map(print, creates))
-    list(map(print, alters))
-
-
-if __name__ == '__main__':
-    main('./cdms-pgsql.sql')
-    # main('./Contactcontactorders_associationSalesOrder.sql')
-    # main('./SystemUserSet.sql')
+    return OUTPUT_TEMPLATE.format(
+        ''.join((map(str, creates))),
+        ''.join((map(str, alters))),
+    )
