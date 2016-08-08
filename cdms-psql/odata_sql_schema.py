@@ -8,6 +8,11 @@ from separate_constraints import main as separate_constraints
 
 
 def main(name_in):
+    '''
+    Call table creation method on PgSQLEntityContainer extended PySLET OData
+    entity container class to get SQL representation of the OData metadata file
+    passed as this function’s only argument.
+    '''
     doc = edmx.Document()
     with open(name_in, 'rb') as metadata_fh:
         doc.read(metadata_fh)  # would love to be able to cache this but
