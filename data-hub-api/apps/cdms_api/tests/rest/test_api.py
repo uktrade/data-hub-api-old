@@ -8,17 +8,21 @@ from ...rest.auth.active_directory import ActiveDirectoryAuth
 
 class TestAPIInit(TestCase):
 
-    @patch.object(ActiveDirectoryAuth, 'setup_session')
-    def test_happy_default(self, m_setup_session):
+    @patch('apps.cdms_api.rest.api.ActiveDirectoryAuth')
+    def test_happy_default(self, m_ActiveDirectoryAuth):
         """
         CDMSRestApi initialises an ActiveDirectoryAuth instance by default
 
         NOTE: ActiveDirectoryAuth's setup_session has to be mocked out or it
         will start the login process automatically.
         """
+        i_ActiveDirectoryAuth = Mock(spec=ActiveDirectoryAuth)
+        m_ActiveDirectoryAuth.return_value = i_ActiveDirectoryAuth
+
         result = CDMSRestApi()
 
-        self.assertIsInstance(result.auth, ActiveDirectoryAuth)
+        m_ActiveDirectoryAuth.assert_called_once_with()
+        self.assertEqual(result.auth, i_ActiveDirectoryAuth)
 
     def test_happy_custom(self):
         """
