@@ -5,9 +5,11 @@ machine:
 dependencies:
   override:
     - make install-test
+    - pip install -r cdms-psql/requirements.txt
 
 test:
   pre:
     - make lint
   override:
     - make test
+    - pushd cdms-psql; py.test; popd
