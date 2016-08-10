@@ -12,4 +12,4 @@ test:
     - make lint
   override:
     - make test
-    - pushd cdms-psql; py.test; popd
+    - pushd cdms-psql; py.test --junitxml=$CIRCLE_TEST_REPORTS/cdms-psql; popd
