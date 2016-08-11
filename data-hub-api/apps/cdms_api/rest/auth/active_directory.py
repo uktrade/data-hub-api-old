@@ -145,11 +145,13 @@ class ActiveDirectoryAuth:
             )
         return resp
 
-    def make_request(self, verb, url, data=dict()):
+    def make_request(self, verb, url, data=None):
         """
         Makes the call to CDMS, if 401 is found, it reauthenticates
         and tries again making the same call
         """
+        if data is None:
+            data = {}
         try:
             return self._make_request(verb, url, data=data)
         except CDMSUnauthorizedException:
@@ -157,7 +159,9 @@ class ActiveDirectoryAuth:
             self.setup_session(force=True)
         return self._make_request(verb, url, data=data)
 
-    def _make_request(self, verb, url, data=dict()):
+    def _make_request(self, verb, url, data=None):
+        if data is None:
+            data = {}
         logger.debug('Calling CDMS url (%s) on %s' % (verb, url))
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 

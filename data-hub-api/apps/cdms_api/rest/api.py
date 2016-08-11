@@ -16,10 +16,12 @@ class CDMSRestApi(object):
     def __init__(self):
         self.auth = ActiveDirectoryAuth()
 
-    def make_request(self, verb, url, data=dict()):
+    def make_request(self, verb, url, data=None):
         """
         Route a request through the authentication layer
         """
+        if data is None:
+            data = {}
         return self.auth.make_request(verb, url, data=data)
 
     def list(self, service, top=50, skip=0, select=None, filters=None, order_by=None):
