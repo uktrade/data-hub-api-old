@@ -1,53 +1,46 @@
 import os
 import responses
 import json
-import pickle
 from urllib.parse import urlparse
 
 from django.template import Engine, Context
 from django.conf import settings
-from django.test.testcases import TestCase
+from django.test import override_settings
 from django.core.exceptions import ImproperlyConfigured
 
 from cdms_api.rest.api import CDMSRestApi
-from cdms_api.cookie_storage import CookieStorage
 from cdms_api.exceptions import LoginErrorException, UnexpectedResponseException, CDMSUnauthorizedException, \
     CDMSNotFoundException, ErrorResponseException
+from .cookie_storage_test_case import CookieStorageTestCase
 
 
-class BaseCDMSRestApiTestCase(TestCase):
-    def setUp(self):
-        super(BaseCDMSRestApiTestCase, self).setUp()
+class TestSetUp(CookieStorageTestCase):
 
-        # always delete the cookies before running the tests
-        self.cookie_storage = CookieStorage()
-        self.cookie_storage.reset()
-
-
-class SetUpTestCase(BaseCDMSRestApiTestCase):
+    @override_settings(
+        CDMS_ADFS_URL='',
+        CDMS_BASE_URL='',
+        CDMS_USERNAME='username',
+        CDMS_PASSWORD='password',
+    )
     def test_exception_if_urls_not_configured(self):
         """
-        If CDMS settings are left blank, the constructor should raise ImproperlyConfigured.
+        CDMSRestApi raises when CDMS URL settings are left blank
         """
-        with self.settings(
-            CDMS_ADFS_URL='',
-            CDMS_BASE_URL='',
-            CDMS_USERNAME='username',
-            CDMS_PASSWORD='password'
-        ):
-            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
+        with self.assertRaises(ImproperlyConfigured):
+            CDMSRestApi()
 
+    @override_settings(
+        CDMS_ADFS_URL='adfs_url',
+        CDMS_BASE_URL='base_url',
+        CDMS_USERNAME='',
+        CDMS_PASSWORD='',
+    )
     def test_exception_if_credentials_configured(self):
         """
-        If CDMS credentials are left blank, the constructor should raise ImproperlyConfigured.
+        CDMSRestApi raises when CDMS un / pw settings are left blank
         """
-        with self.settings(
-            CDMS_ADFS_URL='adfs_url',
-            CDMS_BASE_URL='base_url',
-            CDMS_USERNAME='',
-            CDMS_PASSWORD=''
-        ):
-            self.assertRaises(ImproperlyConfigured, CDMSRestApi)
+        with self.assertRaises(ImproperlyConfigured):
+            CDMSRestApi()
 
 
 class MockedResponseMixin(object):
@@ -141,43 +134,48 @@ class MockedResponseMixin(object):
         })
 
 
-class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
-    @responses.activate
+@responses.activate
+class LoginTestCase(MockedResponseMixin, CookieStorageTestCase):
+
     def test_invalid_credentials(self):
         """
-        In case of invalid credentials, the constructor should raise LoginErrorException.
+        CDMSRestApi raises LoginErrorException on init when un/pw are invalid
         """
         self.mock_initial_login()
         self.mock_login_step(1, errors=True)
 
-        self.assertRaises(LoginErrorException, CDMSRestApi)
+        with self.assertRaises(LoginErrorException):
+            CDMSRestApi()
 
-    @responses.activate
     def test_first_successful_login(self):
         """
-        When logging in for the first time (=> no cookie exists), the constructor should log in and save
-        the valid cookie on the filesystem.
-        """
-        self.assertFalse(self.cookie_storage.exists())
+        CDMSRestApi logs in using AD on init
 
+        When logging in for the first time (=> no cookie exists), the
+        constructor logs in and saves the valid cookie on the filesystem.
+        """
         self.mock_initial_login()
         self.mock_login_step(1)
         self.mock_login_step(2)
         self.mock_login_step(3)
 
         api = CDMSRestApi()
-        self.assertTrue(self.cookie_storage.exists())
-        self.assertTrue(api.session)
 
-    @responses.activate
+        self.assertTrue(self.cookie_storage.exists())
+        self.assertTrue(api.auth.session)
+
     def test_exception_with_initial_form(self):
         """
-        In case of exception with the initial login url, the constructor should raise UnexpectedResponseException.
+        CDMSRestApi raises if AD login returns 500
+
+        In case of exception with the initial login url, the constructor should
+        raise UnexpectedResponseException.
         """
         self.mock_initial_login(status_code=500)
-        self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
+        with self.assertRaises(UnexpectedResponseException):
+            CDMSRestApi()
+
     def test_exception_with_auth_step_1_form(self):
         """
         In case of exception with the step 1 of the auth process, the constructor should
@@ -187,7 +185,6 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.mock_login_step(1, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_exception_with_auth_step_2_form(self):
         """
         In case of exception with the step 2 of the auth process, the constructor should
@@ -198,7 +195,6 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.mock_login_step(2, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_exception_with_final_form(self):
         """
         In case of exception with the final step of the auth process, the constructor should
@@ -210,7 +206,6 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.mock_login_step(3, status_code=500)
         self.assertRaises(UnexpectedResponseException, CDMSRestApi)
 
-    @responses.activate
     def test_reuse_existing_cookie(self):
         """
         If the cookie file exists, use that without making any auth calls.
@@ -222,7 +217,7 @@ class LoginTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.assertTrue(api.session)
 
 
-class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class MakeRequestTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(MakeRequestTestCase, self).setUp()
         self.mock_cookie()
@@ -240,7 +235,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
             index = 0
 
             def wrapper(request):
-                nonlocal index  # flake8: noqa
+                nonlocal index
                 status_code = 200 if index else 401
                 index += 1
                 return (status_code, [], json.dumps({'d': body_response}))
@@ -258,7 +253,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         api = CDMSRestApi()
         resp = api.make_request('get', url)
         self.assertEqual(resp, body_response)
-        self.assertTrue(api.session)
+        self.assertTrue(api.auth.session)
 
     @responses.activate
     def test_setup_session_tries_only_once_if_cookie_expired(self):
@@ -309,7 +304,7 @@ class MakeRequestTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class ListTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class ListTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(ListTestCase, self).setUp()
         self.mock_cookie()
@@ -364,7 +359,7 @@ class ListTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class GetTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class GetTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(GetTestCase, self).setUp()
         self.mock_cookie()
@@ -386,7 +381,7 @@ class GetTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         self.assertEqual(resp, 'something')
 
 
-class UpdateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class UpdateTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(UpdateTestCase, self).setUp()
         self.mock_cookie()
@@ -413,7 +408,7 @@ class UpdateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class CreateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class CreateTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(CreateTestCase, self).setUp()
         self.mock_cookie()
@@ -438,7 +433,7 @@ class CreateTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
         )
 
 
-class DeleteTestCase(MockedResponseMixin, BaseCDMSRestApiTestCase):
+class DeleteTestCase(MockedResponseMixin, CookieStorageTestCase):
     def setUp(self):
         super(DeleteTestCase, self).setUp()
         self.mock_cookie()

@@ -1,6 +1,9 @@
 import os
 import sys
 
+from django.utils.text import slugify
+
+
 # PATH vars
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -141,6 +144,9 @@ CDMS_RSTS_URL = ''
 CDMS_USERNAME = ''
 CDMS_PASSWORD = ''
 CDMS_COOKIE_KEY = b''
+COOKIE_FILE = '/tmp/cdms_cookie_{slug}.tmp'.format(
+    slug=slugify(CDMS_BASE_URL)
+)
 
 # SOURCES
 COMPANIES_HOUSE_TOKEN = ''

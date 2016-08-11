@@ -7,22 +7,22 @@ from django.conf import settings
 from django.test.testcases import TestCase
 from django.core.exceptions import ImproperlyConfigured
 
-from cdms_api.cookie_storage import CookieStorage, COOKIE_FILE
+from cdms_api.cookie_storage import CookieStorage
 
 
 class BaseCookieStorageTestCase(TestCase):
     def setUp(self):
         self.fernet = Fernet(settings.CDMS_COOKIE_KEY)
-        if os.path.exists(COOKIE_FILE):
-            os.remove(COOKIE_FILE)
+        if os.path.exists(settings.COOKIE_FILE):
+            os.remove(settings.COOKIE_FILE)
 
     def write_cookie(self, cookie={}):
         ciphertext = self.fernet.encrypt(pickle.dumps(cookie))
-        with open(COOKIE_FILE, 'wb') as f:
+        with open(settings.COOKIE_FILE, 'wb') as f:
             f.write(ciphertext)
 
     def assertCookieDoesNotExist(self):
-        self.assertFalse(os.path.exists(COOKIE_FILE))
+        self.assertFalse(os.path.exists(settings.COOKIE_FILE))
 
 
 class SetupStorageTestCase(BaseCookieStorageTestCase):
@@ -86,7 +86,7 @@ class WriteCookieStorageTestCase(BaseCookieStorageTestCase):
         storage = CookieStorage()
         storage.write(cookie)
 
-        with open(COOKIE_FILE, 'rb') as f:
+        with open(settings.COOKIE_FILE, 'rb') as f:
             ciphertext = self.fernet.decrypt(f.read())
             cookie_on_fs = pickle.loads(ciphertext)
 
@@ -95,11 +95,11 @@ class WriteCookieStorageTestCase(BaseCookieStorageTestCase):
 
 class ExistsCookieStorageTestCase(BaseCookieStorageTestCase):
     def test_doesnt_exists(self):
-        self.assertFalse(os.path.exists(COOKIE_FILE))
+        self.assertFalse(os.path.exists(settings.COOKIE_FILE))
 
     def test_exists(self):
         self.write_cookie()
-        self.assertTrue(os.path.exists(COOKIE_FILE))
+        self.assertTrue(os.path.exists(settings.COOKIE_FILE))
 
 
 class ResetCookieStorageTestCase(BaseCookieStorageTestCase):
@@ -109,4 +109,4 @@ class ResetCookieStorageTestCase(BaseCookieStorageTestCase):
         storage = CookieStorage()
         storage.reset()
 
-        self.assertFalse(os.path.exists(COOKIE_FILE))
+        self.assertFalse(os.path.exists(settings.COOKIE_FILE))
