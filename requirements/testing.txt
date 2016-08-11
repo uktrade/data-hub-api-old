@@ -17,7 +17,7 @@ django-nose==1.4.4
 django-reversion==1.10.1
 Django==1.9.4             # via django-model-utils, django-reversion, model-mommy
 docutils==0.12            # via sphinx
-flake8==3.0.3
+flake8==3.0.4
 future==0.15.2            # via django-extended-choices
 idna==2.1                 # via cryptography
 imagesize==0.7.1          # via sphinx
