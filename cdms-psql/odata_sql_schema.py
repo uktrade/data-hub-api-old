@@ -11,11 +11,11 @@ def main(name_in):
     '''
     Call table creation method on PgSQLEntityContainer extended PySLET OData
     entity container class to get SQL representation of the OData metadata file
-    passed as this function’s only argument.
+    passed as this functions only argument.
     '''
     doc = edmx.Document()
     with open(name_in, 'rb') as metadata_fh:
-        doc.read(metadata_fh)  # would love to be able to cache this but
+        doc.Read(metadata_fh)  # would love to be able to cache this but
                                # the `doc` object won't pickle
     entity_container_key = 'Microsoft.Crm.Sdk.Data.Services.UKTIContext'
     entity_container = doc.root.DataServices[entity_container_key]
