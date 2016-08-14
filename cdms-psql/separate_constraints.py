@@ -12,7 +12,7 @@ def is_parens(token):
 OUTPUT_TEMPLATE = '{0}\n{1}\n'
 
 
-def main(schema_name):
+def main(schema):
     '''
     Open the SQL schema at the passed file name and return the same schema
     transformed such that foreign key constraints appear onlyl after table
@@ -21,8 +21,7 @@ def main(schema_name):
     NOTE: It is assumed that the SQL is the result of running the script in
     odata_sql_schema.py; ie. it's SQL output by PySLET.
     '''
-    with open(schema_name, 'r') as schema_fh:
-        parsed = sqlparse.parse(schema_fh.read())
+    parsed = sqlparse.parse(schema)
 
     creates = []
     alters = []
