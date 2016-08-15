@@ -1,11 +1,14 @@
+#!/bin/bash
+RELEASE="REL9_5_3"
 set -e
-git clone https://github.com/postgres/postgres.git
+git clone --branch $RELEASE https://github.com/postgres/postgres.git
 cd postgres
-git checkout "REL9_5_3"
+git checkout $RELEASE
 git apply ../postgres-namedatalen.patch
 ./configure
 make
-make install
-/usr/local/pgsql/bin/initdb /usr/local/var/postgres
-/usr/local/pgsql/bin/pg_ctl -D /usr/local/var/postgres -l logfile start
+sudo make install
+mkdir ~/db
+/usr/local/pgsql/bin/initdb ~/db
+/usr/local/pgsql/bin/pg_ctl -D ~/db -l logfile start
 # boom

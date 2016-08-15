@@ -1,3 +1,4 @@
-git+https://github.com/swl10/pyslet.git@pyslet-0.6.20160201#egg=pyslet
+git+https://github.com/UKTradeInvestment/pyslet.git@70f9731#egg=pyslet
 sqlparse
 pytest
+psycopg2
