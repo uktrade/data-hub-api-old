@@ -30,3 +30,6 @@ class CDMSNotFoundException(ErrorResponseException):
 
 class CDMSUnauthorizedException(ErrorResponseException):
     pass
+
+class CDMSForbiddenException(ErrorResponseException):
+    pass

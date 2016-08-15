@@ -10,6 +10,7 @@ from pyquery import PyQuery
 from ..exceptions import (
     ErrorResponseException,
     CDMSUnauthorizedException,
+    CDMSForbiddenException,
     CDMSNotFoundException,
     LoginErrorException,
     UnexpectedResponseException,
@@ -28,7 +29,8 @@ class CDMSRestApi(object):
 
     EXCEPTIONS_MAP = {
         401: CDMSUnauthorizedException,
-        404: CDMSNotFoundException
+        403: CDMSForbiddenException,
+        404: CDMSNotFoundException,
     }
 
     def __init__(self):
@@ -154,13 +156,14 @@ class CDMSRestApi(object):
         return self._make_request(verb, url, data=data)
 
     def _make_request(self, verb, url, data={}):
-        logger.debug('Calling CDMS url (%s) on %s' % (verb, url))
-        headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+        # logger.debug('Calling CDMS url (%s) on %s' % (verb, url))
+        headers = {}  # {'Content-type': 'application/json', 'Accept': 'application/json'}
 
         if data:
             data = json.dumps(data)
         resp = getattr(self.session, verb)(url, data=data, headers=headers)
 
+        '''
         if resp.status_code >= 400:
             logger.debug('Got CDMS error (%s): %s' % (resp.status_code, resp.content))
 
@@ -169,9 +172,7 @@ class CDMSRestApi(object):
                 resp.content,
                 status_code=resp.status_code
             )
-
-        if resp.status_code in (200, 201):
-            return resp.json()['d']
+        '''
 
         return resp
 
@@ -196,8 +197,7 @@ class CDMSRestApi(object):
             params='&'.join(sorted([u'%s=%s' % (k, v) for k, v in params.items()]))
         )
 
-        results = self.make_request('get', url)
-        return results['results']
+        return self.make_request('get', url)
 
     def get(self, service, guid):
         url = "{base_url}/{service}Set(guid'{guid}')".format(
