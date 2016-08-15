@@ -1,3 +1,4 @@
+import logging
 import sqlparse
 
 
@@ -21,13 +22,20 @@ def main(schema):
     NOTE: It is assumed that the SQL is the result of running the script in
     odata_sql_schema.py; ie. it's SQL output by PySLET.
     '''
+    logger = logging.getLogger('separate_constraints')
+    logger.info('Parsing generated schema ...')
     parsed = sqlparse.parse(schema)
 
     creates = []
     alters = []
 
-    for original_create in filter(is_create, parsed):
+    for table_number, original_create in enumerate(filter(is_create, parsed)):
         table_name = original_create.get_name()
+        logger.debug(
+            "Processing table number {0} ({1}) ...".format(
+                table_number + 1, table_name
+            )
+        )
         original_columns = list(next(filter(is_parens, original_create.tokens)).flatten())
         for index, token in enumerate(original_columns):
             if token.match(sqlparse.tokens.Keyword, 'CONSTRAINT'):
