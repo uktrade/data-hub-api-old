@@ -20,8 +20,8 @@ class NTLMAuth:
     def __init__(self):
         """
         Raises:
-            ImproperlyConfigured: If `CDMS_ADFS_URL` or `CDMS_BASE_URL` are not
-                provided via Django settings.
+            ImproperlyConfigured: If `CDMS_BASE_URL`, `CDMS_USERNAME` or
+                `CDMS_PASSWORD` are not provided via Django settings.
         """
         for setting_name in ['CDMS_BASE_URL', 'CDMS_USERNAME', 'CDMS_PASSWORD']:
             if not getattr(settings, setting_name):
