@@ -1,0 +1,49 @@
+2a3
+> Accountaccountleads_associationLead
+23a25,26
+> Campaigncampaigncampaign_associationCampaign
+> Campaigncampaignproduct_associationProduct
+27a31,33
+> Competitorcompetitorproduct_associationProduct
+> Competitorleadcompetitors_associationLead
+> Competitoropportunitycompetitors_associationOpportunity
+31a38
+> ConnectionRoleconnectionroleassociation_associationConnectionRole
+37a45,47
+> Contactcontactinvoices_associationInvoice
+> Contactcontactorders_associationSalesOrder
+> Contactlistcontact_associationList
+40a51
+> Contractservicecontractcontacts_associationContact
+78a90,91
+> Leadcontactleads_associationContact
+> Leadleadproduct_associationProduct
+82a96,99
+> Listcampaignactivitylist_associationCampaignActivity
+> Listcampaignlist_associationCampaign
+> Listlistaccount_associationAccount
+> Listlistlead_associationLead
+106a124
+> Privilegeroleprivileges_associationRole
+112a131,133
+> Productproductassociation_associationProduct
+> Productproductsalesliterature_associationSalesLiterature
+> Productproductsubstitute_associationProduct
+120a142
+> Quotecontactquotes_associationContact
+134a157
+> Rolesystemuserroles_associationSystemUser
+137a161,163
+> SalesLiteraturecampaignactivitysalesliterature_associationCampaignActivity
+> SalesLiteraturecampaignsalesliterature_associationCampaign
+> SalesLiteraturecompetitorsalesliterature_associationCompetitor
+168a195
+> SystemUsersystemuserprofiles_associationFieldSecurityProfile
+173a201,203
+> Teamteammembership_associationSystemUser
+> Teamteamprofiles_associationFieldSecurityProfile
+> Teamteamroles_associationRole
+238a269
+> detica_omisorderdetica_detica_omisorder_contactContact
+361a393
+> optevia_servicedeliverydetica_optevia_servicedelivery_detica_typeofsuppdetica_typeofsupportprovided
