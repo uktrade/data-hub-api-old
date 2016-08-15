@@ -23,3 +23,6 @@ CDMS_RSTS_URL = 'https://sso.example.com'
 CDMS_USERNAME = os.environ.get('DJANGO__CDMS_USERNAME', 'username')
 CDMS_PASSWORD = os.environ.get('DJANGO__CDMS_PASSWORD', 'password')
 CDMS_COOKIE_KEY = b'RKfgWE-GYNy3mWHm5wEUZavralDzSMKDguBfyuBag8A='
+
+if os.environ.get('DJANGO__TEST_INTEGRATION'):
+    TEST_INTEGRATION = True
