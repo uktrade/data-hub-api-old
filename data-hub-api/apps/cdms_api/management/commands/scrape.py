@@ -1,8 +1,11 @@
+import functools
+import itertools
+import multiprocessing
 import os
 import pickle
 
 from django.core.management.base import BaseCommand, CommandError
-from cdms_api.rest.api import CDMSRestApi
+from cdms_api.connection import rest_connection as api
 
 from lxml import etree
 
@@ -52,6 +55,17 @@ FORBIDDEN_ENTITIES = set((
     'optevia_uktiorder',
 ))
 
+with open('cdms-psql/entity-table-map/entities', 'r') as entities_fh:
+    ENTITY_NAMES = []
+    for line in entities_fh.readlines():
+        entity_name = line.strip()
+        if entity_name not in FORBIDDEN_ENTITIES:
+            ENTITY_NAMES.append(entity_name)
+
+ENTITY_INT_MAP = {
+    name: index for index, name in enumerate(ENTITY_NAMES)
+}
+
 
 def file_leaf(*args):
     path = os.path.join(*map(str, args))
@@ -69,9 +83,6 @@ def list_cache_key(service, offset):
 
 class CDMSEntryCache(object):
 
-    def __init__(self, client):
-        self.client = client
-
     def get(self, service, guid):
         raise NotImplementedError()
 
@@ -87,9 +98,8 @@ class CDMSEntryCache(object):
 
 class CDMSListRequestCache(object):
 
-    def __init__(self, client):
-        self.client = client
-        self.entry_cache = CDMSEntryCache(client)
+    def __init__(self):
+        self.entry_cache = CDMSEntryCache()
 
     def holds(self, service, skip):
         return os.path.isfile(list_cache_key(service, skip))
@@ -99,7 +109,7 @@ class CDMSListRequestCache(object):
         if self.holds(service, skip):
             with open(path, 'rb') as cache_fh:
                 return pickle.load(cache_fh)
-        resp = self.client.list(service, skip=skip)
+        resp = api.list(service, skip=skip)
         if not resp.ok:
             return resp
         with open(path, 'wb') as cache_fh:
@@ -108,7 +118,7 @@ class CDMSListRequestCache(object):
             root = etree.fromstring(resp.content)
         except etree.XMLSyntaxError as exc:
             # assume we got the login page, just try again
-            self.client.setup_session(True)
+            api.setup_session(True)
             return self.list(service, skip)
         for entry in root.iter('{http://www.w3.org/2005/Atom}entry'):
             guid = entry.find('{http://www.w3.org/2005/Atom}id').text[-38:-2]
@@ -118,6 +128,27 @@ class CDMSListRequestCache(object):
                 )
         return resp
 
+
+def cache_passthrough(cache, entity_name, offset):
+    resp = cache.list(entity_name, offset)
+    if resp.status_code >= 400:
+        if resp.status_code == 500:
+            try:
+                root = etree.fromstring(resp.content)
+                if 'paging' in root.find('{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}message').text:
+                    print("spent: {0}".format(entity_name))
+                    # let's pretend this means we reached the end and set this
+                    # entity type to spent
+                    SPENT[ENTITY_INT_MAP[entity_name]] = 1
+                    return
+            except Exception as exc:
+                print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+                # something bad happened
+                pass
+        else:
+            print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+
+SPENT = multiprocessing.Array('i', len(ENTITY_NAMES))
 class Command(BaseCommand):
     help = 'Closes the specified poll for voting'
 
@@ -126,34 +157,19 @@ class Command(BaseCommand):
         parser.add_argument('guid', nargs='?')
 
     def handle(self, *args, **options):
-        with open('cdms-psql/entity-table-map/entities', 'r') as entities_fh:
-            entity_names = set()
-            for line in entities_fh.readlines():
-                entity_name = line.strip()
-                if entity_name not in FORBIDDEN_ENTITIES:
-                    entity_names.add(entity_name)
-        client = CDMSRestApi()
-        cache = CDMSListRequestCache(client)
+        cache = CDMSListRequestCache()
+        pool = multiprocessing.Pool(processes=8)
         offset = 0
-        spent = set()
+        api.setup_session(True)
+        for index in range(len(ENTITY_NAMES)):
+            SPENT[index] = 0
         while True:
-            for entity_name in entity_names:
-                if entity_name in spent:
+            starmap_args = []
+            for entity_name in ENTITY_NAMES:
+                if SPENT[ENTITY_INT_MAP[entity_name]] == 1:
+                    # we've downloaded everything there
                     continue
-                resp = cache.list(entity_name, offset)
-                if resp.status_code >= 400:
-                    if resp.status_code == 500:
-                        try:
-                            root = etree.fromstring(resp.content)
-                            if 'paging' in root.find('{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}message').text:
-                                print("spent: {0}".format(entity_name))
-                                # let's pretend this means we reached the end
-                                spent.add(entity_name)
-                                continue
-                        except Exception as exc:
-                            print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
-                            # something bad happened
-                            pass
-                    else:
-                        print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+                starmap_args.append((cache, entity_name, offset))
+            result = pool.starmap_async(cache_passthrough, starmap_args)
+            result.get()
             offset += 50
