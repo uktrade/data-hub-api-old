@@ -1,14 +1,15 @@
-import functools
-import itertools
+import datetime
 import multiprocessing
 import os
 import pickle
+import time
 
 from django.core.management.base import BaseCommand, CommandError
 from cdms_api.connection import rest_connection as api
 
 from lxml import etree
 
+PROCESSES = 16
 FORBIDDEN_ENTITIES = set((
     'Competitor',
     'ConstraintBasedGroup',
@@ -55,16 +56,22 @@ FORBIDDEN_ENTITIES = set((
     'optevia_uktiorder',
 ))
 
+with open('spent', 'r') as spent_fh:
+    SPENT_HERE = [line.strip() for line in spent_fh.readlines()]
+
 with open('cdms-psql/entity-table-map/entities', 'r') as entities_fh:
     ENTITY_NAMES = []
     for line in entities_fh.readlines():
         entity_name = line.strip()
-        if entity_name not in FORBIDDEN_ENTITIES:
+        if entity_name not in FORBIDDEN_ENTITIES:  # and entity_name not in SPENT_HERE:
             ENTITY_NAMES.append(entity_name)
 
 ENTITY_INT_MAP = {
     name: index for index, name in enumerate(ENTITY_NAMES)
 }
+
+SHOULD_REQUEST = multiprocessing.Array('i', len(ENTITY_NAMES))
+AUTH_IN_PROGRESS = multiprocessing.Value('i', 0)
 
 
 def file_leaf(*args):
@@ -81,6 +88,10 @@ def list_cache_key(service, offset):
     return file_leaf('cache', 'list', service, offset)
 
 
+def timing_record(service, offset):
+    return file_leaf('cache', 'timing', service, offset)
+
+
 class CDMSEntryCache(object):
 
     def get(self, service, guid):
@@ -95,7 +106,6 @@ class CDMSEntryCache(object):
         return os.path.isfile(entry_cache_key(service, guid))
 
 
-
 class CDMSListRequestCache(object):
 
     def __init__(self):
@@ -105,20 +115,33 @@ class CDMSListRequestCache(object):
         return os.path.isfile(list_cache_key(service, skip))
 
     def list(self, service, skip):
+        while AUTH_IN_PROGRESS.value == 1:
+            print("{0} ({1}) is waiting for auth".format(service, skip))
+            time.sleep(3)
+            continue
         path = list_cache_key(service, skip)
         if self.holds(service, skip):
             with open(path, 'rb') as cache_fh:
                 return pickle.load(cache_fh)
+        start_time = datetime.datetime.now()
         resp = api.list(service, skip=skip)
         if not resp.ok:
             return resp
+        with open(timing_record(service, skip), 'w') as timing_fh:
+            time_delta = (datetime.datetime.now() - start_time).seconds
+            timing_fh.write(str(time_delta))
+        print("{0} ({1}) {2}s".format(service, skip, time_delta))
         with open(path, 'wb') as cache_fh:
             pickle.dump(resp, cache_fh)
         try:
             root = etree.fromstring(resp.content)
         except etree.XMLSyntaxError as exc:
             # assume we got the login page, just try again
+            print("{0} ({1}) is refreshing auth".format(service, skip))
+            AUTH_IN_PROGRESS.value = 1
             api.setup_session(True)
+            AUTH_IN_PROGRESS.value = 0
+            print("{0} ({1}) has refreshed auth".format(service, skip))
             return self.list(service, skip)
         for entry in root.iter('{http://www.w3.org/2005/Atom}entry'):
             guid = entry.find('{http://www.w3.org/2005/Atom}id').text[-38:-2]
@@ -139,7 +162,7 @@ def cache_passthrough(cache, entity_name, offset):
                     print("spent: {0}".format(entity_name))
                     # let's pretend this means we reached the end and set this
                     # entity type to spent
-                    SPENT[ENTITY_INT_MAP[entity_name]] = 1
+                    SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
                     return
             except Exception as exc:
                 print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
@@ -147,8 +170,10 @@ def cache_passthrough(cache, entity_name, offset):
                 pass
         else:
             print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+    else:
+        SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
 
-SPENT = multiprocessing.Array('i', len(ENTITY_NAMES))
+
 class Command(BaseCommand):
     help = 'Closes the specified poll for voting'
 
@@ -158,18 +183,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         cache = CDMSListRequestCache()
-        pool = multiprocessing.Pool(processes=8)
-        offset = 0
+        pool = multiprocessing.Pool(processes=PROCESSES)
+        offsets = [1200 for _ in range(len(ENTITY_NAMES))]
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
-            SPENT[index] = 0
+            SHOULD_REQUEST[index] = 1
         while True:
+            if pool._taskqueue.qsize() > PROCESSES:
+                continue
             starmap_args = []
             for entity_name in ENTITY_NAMES:
-                if SPENT[ENTITY_INT_MAP[entity_name]] == 1:
-                    # we've downloaded everything there
+                entity_index = ENTITY_INT_MAP[entity_name]
+                if SHOULD_REQUEST[entity_index] == 0:
                     continue
-                starmap_args.append((cache, entity_name, offset))
-            result = pool.starmap_async(cache_passthrough, starmap_args)
-            result.get()
-            offset += 50
+                starmap_args.append((cache, entity_name, offsets[entity_index]))
+                SHOULD_REQUEST[entity_index] = 0  # mark entity as closed
+                offsets[entity_index] += 50
+            pool.starmap_async(cache_passthrough, starmap_args)
