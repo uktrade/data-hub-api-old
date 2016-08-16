@@ -104,7 +104,12 @@ class CDMSListRequestCache(object):
             return resp
         with open(path, 'wb') as cache_fh:
             pickle.dump(resp, cache_fh)
-        root = etree.fromstring(resp.content)
+        try:
+            root = etree.fromstring(resp.content)
+        except etree.XMLSyntaxError as exc:
+            # assume we got the login page, just try again
+            self.client.setup_session(True)
+            return self.list(service, skip)
         for entry in root.iter('{http://www.w3.org/2005/Atom}entry'):
             guid = entry.find('{http://www.w3.org/2005/Atom}id').text[-38:-2]
             if not self.entry_cache.holds(service, guid):
