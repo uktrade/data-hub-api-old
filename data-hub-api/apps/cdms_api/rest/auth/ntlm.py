@@ -49,12 +49,10 @@ class NTLMAuth:
 
         resp = getattr(self.session, verb)(url, data=data, headers=headers)
 
-        json_data = resp.json()
-
         if resp.status_code in (200, 201):
-            return json_data['d']
+            return resp.json()['d']
 
         if resp.status_code == 404:
-            raise CDMSNotFoundException(json_data, status_code=resp.status_code)
+            raise CDMSNotFoundException(resp.json(), status_code=resp.status_code)
 
         return resp

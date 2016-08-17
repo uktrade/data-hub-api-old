@@ -83,6 +83,11 @@ class CDMSRestApi(object):
         return self.make_request('post', url, data=data)
 
     def delete(self, service, guid):
+        """
+        Returns:
+            requests.models.Response: A Response object with 204 status_code
+                and no content on success.
+        """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
             service=service,

@@ -28,3 +28,17 @@ class TestDelete(ClientTestCase):
             self.client.delete('Account', uuid.uuid4())
 
         self.assertEqual(context.exception.message['error']['code'], MSDCRM11_ERROR_DOES_NOT_EXIST)
+
+    def test_existing(self):
+        """
+        Client DELETEs existing Account, gets 204
+
+        TODO: Remove bootstrapped manually created Account
+        """
+        a_id = 'DFB77162-9164-E611-80CF-000D3AB34C09'
+
+        result = self.client.delete('Account', a_id)
+
+        self.assertEqual(result.status_code, 204)
+        self.assertEqual(result.content, b'')
+        self.assertEqual(len(self.client.list('Account')), 0)
