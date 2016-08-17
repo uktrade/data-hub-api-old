@@ -11,7 +11,7 @@ class TestDelete(ClientTestCase):
 
     def test_set_up(self):
         """
-        TestDelete starts with no Accounts
+        setUp: no Accounts
         """
         self.assertServiceEmpty('Account')
 

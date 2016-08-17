@@ -84,9 +84,20 @@ class CDMSRestApi(object):
 
     def delete(self, service, guid):
         """
+        Delete a single entity from the service with the provided ID.
+
+        Args:
+            service (str): Name of entity type. For example, 'Account'.
+            guid (str): UUID of entity to be deleted.
+
         Returns:
             requests.models.Response: A Response object with 204 status_code
-                and no content on success.
+                and no content on success. 400 Bad Request will be returned if
+                guid is not valid.
+
+        Raises:
+            CDMSNotFoundException: If instance with provided guid can't be
+                found.
         """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
@@ -94,3 +105,25 @@ class CDMSRestApi(object):
             guid=guid
         )
         return self.make_request('delete', url)
+
+    def delete_all(self, service):
+        """
+        Remove all entities of a type. Used in tearing down testing.
+
+        NOTE does not currently paginate - only deletes the first 50 entities.
+
+        Args:
+            service (str): Name of entity type. For example, 'Account'.
+
+        Returns:
+            int: Number of entities deleted.
+        """
+        counter = 0
+        id_name = '{}Id'.format(service)
+
+        for entity in self.list(service):
+            response = self.delete(service, entity[id_name])
+            if response.status_code == 204:
+                counter += 1
+
+        return counter
