@@ -3,6 +3,9 @@
 node {
    // Mark the code checkout 'stage'....
 
+   stage 'Checkout'
+   checkout scm
+
    stage 'Unit test'
    sh 'docker-compose -p data-hub-api-${BRANCH_NAME} up -d db'
    sh 'docker-compose -p data-hub-api-${BRANCH_NAME} up django'
