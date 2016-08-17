@@ -3,8 +3,7 @@
 node {
    // Mark the code checkout 'stage'....
 
-   stage 'Clean workspace'
-   deleteDir()
+   stage 'Prepare test'
    sh 'mkdir reports'
 
    stage 'Unit test'
@@ -14,4 +13,7 @@ node {
 
    stage 'Capture test results'
    step([$class: 'JUnitResultArchiver', testResults: 'results/**/*.xml'])
+
+   stage 'Clean workspace'
+   deleteDir()
 }
