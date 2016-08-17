@@ -9,6 +9,12 @@ MSDCRM11_ERROR_DOES_NOT_EXIST = '-2147220969'
 
 class TestDelete(ClientTestCase):
 
+    def test_set_up(self):
+        """
+        TestDelete starts with no Accounts
+        """
+        self.assertServiceEmpty('Account')
+
     def test_bad_request(self):
         """
         Client DELETE without a full guid gets 400

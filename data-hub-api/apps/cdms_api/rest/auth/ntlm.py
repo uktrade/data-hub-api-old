@@ -39,6 +39,9 @@ class NTLMAuth:
         NOTE: main difference between this and AD's `make_request` is that this
         one will json decode error messages before offloading them into
         exceptions.
+
+        NOTE 2: Hiding the reponse code from the client layer makes it hard to
+        take different actions per verb. E.g. 200 vs 201 on success.
         """
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
