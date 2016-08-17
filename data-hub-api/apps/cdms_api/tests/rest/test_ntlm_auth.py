@@ -67,11 +67,11 @@ class TestMakeRequest(TestCase):
         """
         super().setUp()
         self.auth = NTLMAuth()
-        p_get = patch.object(Session, 'get', autospec=True)
-        self.m_get = p_get.start()
+        patch_get = patch.object(Session, 'get', autospec=True)
+        self.mock_get = patch_get.start()
         self.response = Mock(name='Response')
-        self.m_get.return_value = self.response
-        self.addCleanup(p_get.stop)
+        self.mock_get.return_value = self.response
+        self.addCleanup(patch_get.stop)
 
     def test_get_passthrough(self):
         """
@@ -82,7 +82,7 @@ class TestMakeRequest(TestCase):
         result = self.auth.make_request('get', '__URL__')
 
         self.assertEqual(result, self.response)
-        self.m_get.assert_called_once_with(
+        self.mock_get.assert_called_once_with(
             self.auth.session,
             '__URL__',
             data={},
@@ -102,7 +102,7 @@ class TestMakeRequest(TestCase):
 
         self.assertEqual(result, self.response)
         expected_data = '{"__KEY__": "__VALUE__"}'
-        self.m_get.assert_called_once_with(
+        self.mock_get.assert_called_once_with(
             self.auth.session,
             '__URL__',
             data=expected_data,
