@@ -5,6 +5,8 @@ from django.core.exceptions import ImproperlyConfigured
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
+from ...exceptions import CDMSNotFoundException
+
 
 class NTLMAuth:
     """
@@ -33,6 +35,10 @@ class NTLMAuth:
     def make_request(self, verb, url, data=None):
         """
         Pass through calls to self.session
+
+        NOTE: main difference between this and AD's `make_request` is that this
+        one will json decode error messages before offloading them into
+        exceptions.
         """
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
 
@@ -43,7 +49,12 @@ class NTLMAuth:
 
         resp = getattr(self.session, verb)(url, data=data, headers=headers)
 
+        json_data = resp.json()
+
         if resp.status_code in (200, 201):
-            return resp.json()['d']
+            return json_data['d']
+
+        if resp.status_code == 404:
+            raise CDMSNotFoundException(json_data, status_code=resp.status_code)
 
         return resp

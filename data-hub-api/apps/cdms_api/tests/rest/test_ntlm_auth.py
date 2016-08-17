@@ -5,6 +5,7 @@ from django.test.testcases import TestCase, override_settings
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
+from ...exceptions import CDMSNotFoundException
 from ...rest.auth.ntlm import NTLMAuth
 
 
@@ -76,8 +77,10 @@ class TestMakeRequest(TestCase):
     def test_get_passthrough(self):
         """
         NTLMAuth make_request does GET with no data using its session
+
+        Use status code 500 because it doesn't create an exception.
         """
-        self.response.status_code = 404
+        self.response.status_code = 500
 
         result = self.auth.make_request('get', '__URL__')
 
@@ -93,7 +96,7 @@ class TestMakeRequest(TestCase):
         """
         NTLMAuth make_request does GET with data encoded using its session
         """
-        self.response.status_code = 404
+        self.response.status_code = 500
         data = {
             '__KEY__': '__VALUE__',
         }
@@ -108,6 +111,29 @@ class TestMakeRequest(TestCase):
             data=expected_data,
             headers=self.expected_headers,
         )
+
+    def test_get_not_found_exception(self):
+        """
+        NTLMAuth make_request will raise CDMSNotFoundException on 404
+
+        Returned json data is decoded and kept inside exception.
+
+        Trusts:
+            test_get_passthrough_data: Data was passed through to `get` call.
+        """
+        self.response.status_code = 404
+        self.response.json.return_value = {
+            '__ERROR__': '__ERROR_DATA__',
+        }
+        data = {
+            '__KEY__': '__VALUE__',
+        }
+
+        with self.assertRaises(CDMSNotFoundException) as context:
+            self.auth.make_request('get', '__URL__', data=data)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.message, {'__ERROR__': '__ERROR_DATA__'})
 
     def test_get_return_data(self):
         """
