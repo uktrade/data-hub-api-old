@@ -3,9 +3,6 @@
 node {
    // Mark the code checkout 'stage'....
 
-   stage 'Prepare test'
-   sh 'mkdir reports'
-
    stage 'Unit test'
    sh 'docker-compose -p data-hub-api-${BRANCH_NAME} up -d db'
    sh 'docker-compose -p data-hub-api-${BRANCH_NAME} up django'
