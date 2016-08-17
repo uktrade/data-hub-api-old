@@ -15,6 +15,17 @@ class TestAssertServiceCountEqual(ClientTestCase):
         """
         self.assertServiceCountEqual('Account', 0)
 
+    def test_one(self):
+        """
+        assertServiceCountEqual matches 1 service instance (Account)
+        """
+        account = self.client.create('Account', {'Name': 'assertServiceCountEqual one'})
+        guid = account['AccountId']
+
+        self.assertServiceCountEqual('Account', 1)
+
+        self.client.delete('Account', guid)
+
 
 class TestAssertServiceEmpty(ClientTestCase):
 
@@ -26,6 +37,18 @@ class TestAssertServiceEmpty(ClientTestCase):
 
     def test_empty(self):
         """
-        TestAssertServiceEmpty passes when none of service instance (Accounts)
+        assertServiceEmpty passes when none of service instance (Accounts)
         """
         self.assertServiceEmpty('Account')
+
+    def test_one(self):
+        """
+        assertServiceEmpty fails with a single instance (Account)
+        """
+        account = self.client.create('Account', {'Name': 'assertServiceEmpty one'})
+        guid = account['AccountId']
+
+        with self.assertRaises(AssertionError):
+            self.assertServiceEmpty('Account')
+
+        self.client.delete('Account', guid)
