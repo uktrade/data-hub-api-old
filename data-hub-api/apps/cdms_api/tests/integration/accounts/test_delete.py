@@ -38,13 +38,12 @@ class TestDelete(ClientTestCase):
     def test_existing(self):
         """
         Client DELETEs existing Account, gets 204
-
-        TODO: Remove bootstrapped manually created Account
         """
-        a_id = 'DFB77162-9164-E611-80CF-000D3AB34C09'
+        account = self.client.create('Account', {'Name': 'test_delete.test_existing'})
+        a_id = account['AccountId']
 
         result = self.client.delete('Account', a_id)
 
         self.assertEqual(result.status_code, 204)
         self.assertEqual(result.content, b'')
-        self.assertEqual(len(self.client.list('Account')), 0)
+        self.assertServiceEmpty('Account')
