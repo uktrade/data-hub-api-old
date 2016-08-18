@@ -1,0 +1,32 @@
+version: "2"
+
+services:
+  db:
+    image: postgres
+    networks:
+      - default
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  app:
+    build: .
+    command: scripts/wait_for.sh db:5432 -- make test
+    networks:
+      - default
+    links:
+      - db
+    volumes:
+      - ./reports:/app/reports
+    environment:
+      DJANGO__TEST_INTEGRATION: 'true'
+      DJANGO__CDMS_BASE_URL: ${DJANGO__CDMS_BASE_URL}
+      DJANGO__CDMS_USERNAME: ${DJANGO__CDMS_USERNAME}
+      DJANGO__CDMS_PASSWORD: ${DJANGO__CDMS_PASSWORD}
+      DJANGO__DB_HOST: db
+      DJANGO__DB_USERNAME: postgres
+      DJANGO__DB_PASSWORD: postgres
+
+networks:
+  default:
+    driver: bridge
