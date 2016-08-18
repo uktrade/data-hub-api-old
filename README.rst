@@ -89,6 +89,24 @@ command is this::
 
 There is further documentation about running tests in ``Makefile``.
 
+There is a set of integration tests which use private configuration to connect
+to a vanilla Microsoft Dynamics CRM 2011 server. These use NTLM authentication
+and require the following settings:
+
+* ``CDMS_BASE_URL``
+* ``CDMS_USERNAME``
+* ``CDMS_PASSWORD``
+
+In addition, the ``TEST_INTEGRATION`` setting must be set to ``True`` for
+integration tests to be run (and not skipped). Default behaviour if this
+setting is missing is for the tests to be skipped by the ``skipIntegration``
+decorator.
+
+The settings above can all be set via environment variables - ``DJANGO__``
+(Django dunder) should be prepended to the setting name. For example, override
+the ``CDMS_PASSWORD`` setting by creating the ``DJANGO__CDMS_PASSWORD`` env
+var.
+
 
 Requirements
 ............
@@ -97,14 +115,29 @@ Requirements are managed with ``pip-tools``, and the packages required are
 defined in ``*.in`` files instead of ``requirements*.txt`` files. The
 ``pip-tools`` suite is installed as part of the local requirements.
 
-To add a dependency, locate the appropriate ``*.in`` file and add there as you
-would with a standard Pip requirements file.
+To add a dependency, locate the appropriate ``*.in`` file and add just the name
+of it there. The version number is only required if a particular version of the
+library is required. The latest version will be chosen by default when
+compiling.
 
-To update all requirements (including updating all packages that are not pinned
-in the ``.in`` file with a particular version number), the default ``make``
-command will clean out all ``*.txt`` files and rebuild them all::
+To recompile the requirements which will add any new packages specified in the
+``*.in`` files do::
 
     make requirements
+
+In order to update a single package version, remove its lines from the compiled
+corresponding ``.txt`` files. The next call to ``make requirements`` will
+reevaluate the latest version for packages that do not have corresponding lines
+in the ``.txt`` file and they will be updated as required.
+
+To update all requirements to the latest version (including updating all
+packages that are not pinned in the ``.in`` file with a particular version
+number), the ``clean`` recipe will clean out all ``*.txt`` files if you have
+``pip-tools`` installed. Then the ``all`` recipe can be used to rebuild them
+all::
+
+    cd requirements
+    make clean all
 
 To update a particular requirements file use ``make [file].txt`` (or find the
 specific commands at the top of any of the ``.txt`` files)::
@@ -114,3 +147,8 @@ specific commands at the top of any of the ``.txt`` files)::
 
 Recompiling a single ``.txt`` file will maintain the package versions that it
 contains and just update any new / remove any missing packages.
+
+If in doubt about what ``make`` is about to run at any stage, it can be helpful
+to ask for a dry-run and inspect the commands that were planned::
+
+    make -n requirements

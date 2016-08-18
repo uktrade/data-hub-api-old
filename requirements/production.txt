@@ -27,10 +27,12 @@ pyasn1==0.1.9             # via cryptography
 pycparser==2.14           # via cffi
 Pygments==2.1.3           # via sphinx
 pyquery==1.2.11
+python-ntlm3==1.0.2       # via requests-ntlm
 pytz==2016.2
 PyYAML==3.11
+requests-ntlm==0.3.0
 requests==2.9.1
-six==1.10.0               # via cryptography, sphinx
+six==1.10.0               # via cryptography, python-ntlm3, sphinx
 slumber==0.7.1
 snowballstemmer==1.2.1    # via sphinx
 sphinx-rtd-theme==0.1.9
