@@ -11,8 +11,29 @@ class EnvSettingsAssertion:
         Given a pair of environment variable and Django setting names and a
         default value, assert that Django loaded the expected value into the
         Django setting.
+
+        NOTE: Exceptions could be coerced to AssertionError.
+
+        Args:
+            environment_name (str): Name of environment variable.
+            django_name (str): Name of Django setting to be checked. If setting
+                is a dictionary (like 'DATABASES') then entries can be
+                specified using '.' as a separator. For example,
+                'DATABASES.default.HOST'.
+            default (object): Any value that could be set as a default in the
+                case that the env var does not exist.
+
+        Raises:
+            AttributeError: In that case that the Django setting does not
+                exist.
+            KeyError: In the case that the Django setting dict does not have
+                the expected key.
         """
-        django_value = getattr(settings, django_name)
+        django_name_parts = django_name.split('.')
+        django_value = getattr(settings, django_name_parts.pop(0))
+
+        while len(django_name_parts) > 0:
+            django_value = django_value[django_name_parts.pop(0)]
 
         try:
             expected_value = os.environ[environment_name]
@@ -160,4 +181,66 @@ class TestAssertSettingsEnvExpected(TestCase, EnvSettingsAssertion):
         os.environ['__ENV_NAME__'] = '__VALUE__'
 
         with self.assertRaises(AssertionError):
-            self.assertSettingEnvExpected('__ENV_NAME__', '__DJANGO_NAME__', '__OTHER__')
+            self.assertSettingEnvExpected('__ENV_NAME__', '__DJANGO_NAME__', '__DEFAULT__')
+
+
+class TestAssertSettingsEnvExpectedDict(TestCase, EnvSettingsAssertion):
+    """
+    Given an environment variable '__ENV_NAME__'
+    Given a Django setting '__DJANGO_NAME__["key1"]["key2"]'
+    Given a default value for the Django setting of '__KEYED_VAL__'
+
+    Assert that assertSettingEnvExpected can read the nested value.
+    """
+
+    @override_settings(
+        __DJANGO_NAME__={
+            'key1': {
+                'key2': '__KEYED_VAL__',
+                'keya': '__OTHER_VAL__',
+            },
+            'keyz': 'thing',
+        },
+    )
+    def test_value_value(self):
+        """
+        assertSettingEnvExpected: envvar has value, setting dict value matches
+        """
+        os.environ['__ENV_NAME__'] = '__KEYED_VAL__'
+
+        self.assertSettingEnvExpected('__ENV_NAME__', '__DJANGO_NAME__.key1.key2', '__DEFAULT__')
+
+    @override_settings(
+        __DJANGO_NAME__={
+            'key1': {
+                'key2': '__OTHER_VAL__',
+                'keya': '__OTHER_VAL__',
+            },
+            'keyz': 'thing',
+        },
+    )
+    def test_value_other(self):
+        """
+        assertSettingEnvExpected: envvar has value, setting dict value other
+        """
+        os.environ['__ENV_NAME__'] = '__KEYED_VAL__'
+
+        with self.assertRaises(AssertionError):
+            self.assertSettingEnvExpected('__ENV_NAME__', '__DJANGO_NAME__.key1.key2', '__DEFAULT__')
+
+    @override_settings(
+        __DJANGO_NAME__={
+            'key1': {
+                'keya': '__OTHER_VAL__',
+            },
+            'keyz': 'thing',
+        },
+    )
+    def test_value_missing(self):
+        """
+        assertSettingEnvExpected: envvar has value, setting dict missing
+        """
+        os.environ['__ENV_NAME__'] = '__KEYED_VAL__'
+
+        with self.assertRaises(KeyError):
+            self.assertSettingEnvExpected('__ENV_NAME__', '__DJANGO_NAME__.key1.key2', '__DEFAULT__')
