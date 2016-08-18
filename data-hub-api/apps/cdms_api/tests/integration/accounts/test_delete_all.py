@@ -4,12 +4,6 @@ from ..client_test_case import ClientTestCase
 
 class TestDeleteAllNone(ClientTestCase):
 
-    def test_set_up(self):
-        """
-        setUp: no Accounts
-        """
-        self.assertServiceEmpty('Account')
-
     def test_none(self):
         """
         Client delete_all with no entities does nothing

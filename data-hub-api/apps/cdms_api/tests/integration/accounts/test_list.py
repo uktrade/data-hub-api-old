@@ -28,10 +28,6 @@ class TestListOne(ClientTestCase):
         account = self.client.create('Account', {'Name': 'TestListOne'})
         self.guid = account['AccountId']
 
-    def tearDown(self):
-        self.client.delete('Account', self.guid)
-        super().tearDown()
-
     def test_set_up(self):
         """
         setUp: One Account exists
