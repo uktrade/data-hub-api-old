@@ -62,6 +62,20 @@ class TestEnv(TestCase, EnvSettingsAssertion):
             default='https://example.com',
         )
 
+    def test_TEST_INTEGRATION(self):
+        """
+        TEST_INTEGRATION setting is loaded as expected
+
+        Slightly different test required because TEST_INTEGRATION uses a truthy
+        value.
+        """
+        try:
+            value = bool(os.environ['DJANGO__TEST_INTEGRATION'])
+            self.assertEqual(settings.TEST_INTEGRATION, value)
+        except KeyError:
+            with self.assertRaises(AttributeError):
+                settings.TEST_INTEGRATION
+
 
 class TestAssertSettingsEnvExpected(TestCase, EnvSettingsAssertion):
     """
