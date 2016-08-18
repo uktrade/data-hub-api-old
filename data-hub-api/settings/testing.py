@@ -30,7 +30,7 @@ DATABASES = {
         'NAME': os.environ.get('DJANGO__DB_NAME', 'data-hub-api'),
         'USER': os.environ.get('DJANGO__DB_USERNAME', ''),
         'PASSWORD': os.environ.get('DJANGO__DB_PASSWORD', ''),
-        'HOST': os.environ.get('DJANGO__DB_HOST', 'db'),
+        'HOST': os.environ.get('DJANGO__DB_HOST', ''),
         'PORT': os.environ.get('DJANGO__DB_PORT', '5432'),
     }
 }

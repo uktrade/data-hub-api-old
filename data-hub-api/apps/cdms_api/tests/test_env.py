@@ -97,6 +97,59 @@ class TestEnv(TestCase, EnvSettingsAssertion):
             with self.assertRaises(AttributeError):
                 settings.TEST_INTEGRATION
 
+    def test_DATABASE_default_NAME(self):
+        """
+        DATABASES.default.NAME is loaded as expected
+
+        Slightly dirty because it's creating the test database name and testing
+        against that by prefixing 'test_'
+        """
+        self.assertSettingEnvExpected(
+            environment_name='DJANGO__DB_NAME',
+            django_name='DATABASES.default.NAME',
+            default='test_data-hub-api',
+        )
+
+    def test_DATABASE_default_USERNAME(self):
+        """
+        DATABASES.default.USERNAME is loaded as expected
+        """
+        self.assertSettingEnvExpected(
+            environment_name='DJANGO__DB_USERNAME',
+            django_name='DATABASES.default.USER',
+            default='',
+        )
+
+    def test_DATABASE_default_PASSWORD(self):
+        """
+        DATABASES.default.NAME is loaded as expected
+        """
+        self.assertSettingEnvExpected(
+            environment_name='DJANGO__DB_PASSWORD',
+            django_name='DATABASES.default.PASSWORD',
+            default='',
+        )
+
+    def test_DATABASE_default_HOST(self):
+        """
+        DATABASES.default.HOST is loaded as expected
+        """
+        self.assertSettingEnvExpected(
+            environment_name='DJANGO__DB_HOST',
+            django_name='DATABASES.default.HOST',
+            default='',
+        )
+
+    def test_DATABASE_default_PORT(self):
+        """
+        DATABASES.default.PORT is loaded as expected
+        """
+        self.assertSettingEnvExpected(
+            environment_name='DJANGO__DB_PORT',
+            django_name='DATABASES.default.PORT',
+            default='5432',
+        )
+
 
 class TestAssertSettingsEnvExpected(TestCase, EnvSettingsAssertion):
     """
