@@ -24,6 +24,18 @@ class TestAssertServiceCountEqual(ClientTestCase):
 
         self.assertServiceCountEqual('Account', 1)
 
+    def test_many(self):
+        """
+        assertServiceCountEqual matches 5 Account instances
+
+        Also since all Accounts are created with the same name, asserts that
+        vanilla doesn't care about name clashes.
+        """
+        for _ in range(5):
+            self.client.create('Account', {'Name': 'assertServiceCountEqual many'})
+
+        self.assertServiceCountEqual('Account', 5)
+
 
 class TestAssertServiceEmpty(ClientTestCase):
 
