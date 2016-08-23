@@ -9,6 +9,8 @@ from cdms_api.connection import rest_connection as api
 
 from lxml import etree
 
+MESSAGE_TAG = '{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}message'
+
 PROCESSES = 16
 FORBIDDEN_ENTITIES = set((
     'Competitor',
@@ -66,6 +68,7 @@ with open('cdms-psql/entity-table-map/entities-optimisable', 'r') as entities_fh
 ENTITY_INT_MAP = {
     name: index for index, name in enumerate(ENTITY_NAMES)
 }
+ENTITY_OFFSETS = []
 
 SHOULD_REQUEST = multiprocessing.Array('i', len(ENTITY_NAMES))
 AUTH_IN_PROGRESS = multiprocessing.Value('i', 0)
@@ -103,10 +106,10 @@ class CDMSListRequestCache(object):
             print("{0} ({1}) is waiting for auth".format(service, skip))
             time.sleep(3)
             continue
-        path = list_cache_key(service, skip)
+        cache_path = list_cache_key(service, skip)
         if self.holds(service, skip):
             return  # kick out early
-            with open(path, 'rb') as cache_fh:
+            with open(cache_path, 'rb') as cache_fh:
                 try: return pickle.load(cache_fh)
                 except: pass
         start_time = datetime.datetime.now()
@@ -117,10 +120,10 @@ class CDMSListRequestCache(object):
             time_delta = (datetime.datetime.now() - start_time).seconds
             timing_fh.write(str(time_delta))
         print("{0} ({1}) {2}s".format(service, skip, time_delta))
-        with open(path, 'wb') as cache_fh:
+        with open(cache_path, 'wb') as cache_fh:
             pickle.dump(resp, cache_fh)
         try:
-            root = etree.fromstring(resp.content)
+            etree.fromstring(resp.content)  # check XML is parseable
         except etree.XMLSyntaxError as exc:
             # assume we got the login page, just try again
             print("{0} ({1}) is refreshing auth".format(service, skip))
@@ -140,7 +143,7 @@ def cache_passthrough(cache, entity_name, offset):
         if resp.status_code == 500:
             try:
                 root = etree.fromstring(resp.content)
-                if 'paging' in root.find('{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}message').text:
+                if 'paging' in root.find(MESSAGE_TAG).text:
                     print("spent: {0}".format(entity_name))
                     # let's pretend this means we reached the end and set this
                     # entity type to spent
@@ -155,22 +158,19 @@ def cache_passthrough(cache, entity_name, offset):
             SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
             print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
     else:
-        SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
+        entity_index = ENTITY_INT_MAP[entity_name]
+        ENTITY_OFFSETS[entity_index] += 50  # bump offset
+        SHOULD_REQUEST[entity_index] = 1  # mark entity as open
 
 
 class Command(BaseCommand):
-    help = 'Closes the specified poll for voting'
-
-    def add_arguments(self, parser):
-        parser.add_argument('service', nargs='?')
-        parser.add_argument('guid', nargs='?')
+    help = 'Download and cache XML files from CDMS'
 
     def handle(self, *args, **options):
         cache = CDMSListRequestCache()
         pool = multiprocessing.Pool(processes=PROCESSES)
-        offsets = []
         for entity_name in ENTITY_NAMES:
-            offsets.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
+            ENTITY_OFFSETS.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
             SHOULD_REQUEST[index] = 1
@@ -182,7 +182,6 @@ class Command(BaseCommand):
                 entity_index = ENTITY_INT_MAP[entity_name]
                 if SHOULD_REQUEST[entity_index] == 0:
                     continue
-                starmap_args.append((cache, entity_name, offsets[entity_index]))
+                starmap_args.append((cache, entity_name, ENTITY_OFFSETS[entity_index]))
                 SHOULD_REQUEST[entity_index] = 0  # mark entity as closed
-                offsets[entity_index] += 50
             pool.starmap_async(cache_passthrough, starmap_args)
