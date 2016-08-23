@@ -1,3 +1,4 @@
+import uuid
 import datetime
 import multiprocessing
 import os
@@ -11,7 +12,7 @@ from lxml import etree
 
 MESSAGE_TAG = '{http://schemas.microsoft.com/ado/2007/08/dataservices/metadata}message'
 
-PROCESSES = 16
+PROCESSES = 32
 FORBIDDEN_ENTITIES = set((
     'Competitor',
     'ConstraintBasedGroup',
@@ -103,15 +104,10 @@ class CDMSListRequestCache(object):
 
     def list(self, service, skip):
         while AUTH_IN_PROGRESS.value == 1:
-            print("{0} ({1}) is waiting for auth".format(service, skip))
-            time.sleep(3)
-            continue
+            return
         cache_path = list_cache_key(service, skip)
         if self.holds(service, skip):
             return  # kick out early
-            with open(cache_path, 'rb') as cache_fh:
-                try: return pickle.load(cache_fh)
-                except: pass
         start_time = datetime.datetime.now()
         resp = api.list(service, skip=skip, order_by='CreatedOn')
         if not resp.ok:
@@ -119,23 +115,21 @@ class CDMSListRequestCache(object):
         with open(timing_record(service, skip), 'w') as timing_fh:
             time_delta = (datetime.datetime.now() - start_time).seconds
             timing_fh.write(str(time_delta))
-        print("{0} ({1}) {2}s".format(service, skip, time_delta))
-        with open(cache_path, 'wb') as cache_fh:
-            pickle.dump(resp, cache_fh)
         try:
             etree.fromstring(resp.content)  # check XML is parseable
         except etree.XMLSyntaxError as exc:
-            # assume we got the login page, just try again
-            print("{0} ({1}) is refreshing auth".format(service, skip))
-            AUTH_IN_PROGRESS.value = 1
-            api.setup_session(True)
-            AUTH_IN_PROGRESS.value = 0
-            print("{0} ({1}) has refreshed auth".format(service, skip))
-            return self.list(service, skip)
+            # assume we got de-auth'd, trust poll_auth to fix it
+            print("{0} ({1}) {2}s (FAIL)".format(service, skip, time_delta))
+            return
+        print("{0} ({1}) {2}s".format(service, skip, time_delta))
+        with open(cache_path, 'wb') as cache_fh:
+            pickle.dump(resp, cache_fh)
         return resp
 
 
 def cache_passthrough(cache, entity_name, offset):
+    identifier = uuid.uuid4()
+    print("Starting {0} {1} {2}".format(entity_name, offset, identifier))
     resp = cache.list(entity_name, offset)
     if not resp:
         SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
@@ -144,23 +138,41 @@ def cache_passthrough(cache, entity_name, offset):
             try:
                 root = etree.fromstring(resp.content)
                 if 'paging' in root.find(MESSAGE_TAG).text:
-                    print("spent: {0}".format(entity_name))
                     # let's pretend this means we reached the end and set this
                     # entity type to spent
+                    print("Spent {0} {1} {2}".format(entity_name, offset, identifier))
                     SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
                     return
             except Exception as exc:
-                print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+                print("Failing {0} {1} {2}".format(entity_name, offset, identifier))
                 SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
-                # something bad happened
+                # something bad, unknown and unknowable happened
                 pass
         else:
             SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
-            print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+            print("Failing {0} {1} {2}".format(entity_name, offset, identifier))
     else:
+        # everything went according to plan
         entity_index = ENTITY_INT_MAP[entity_name]
         ENTITY_OFFSETS[entity_index] += 50  # bump offset
         SHOULD_REQUEST[entity_index] = 1  # mark entity as open
+        print("Completing {0} {1} {2}".format(entity_name, offset, identifier))
+
+
+def poll_auth(n):
+    print("AUTH POLL {0}".format(n))
+    resp = api.list('FixedMonthlyFiscalCalendar')  # requests here seem fast
+    if not resp.ok:
+        time.sleep(1)
+        return poll_auth(True)
+    try:
+        etree.fromstring(resp.content)  # check XML is parseable
+    except etree.XMLSyntaxError as exc:
+        print('AUTH REFRESH')
+        # assume we got the login page, just try again
+        AUTH_IN_PROGRESS.value = 1
+        api.setup_session(True)
+        AUTH_IN_PROGRESS.value = 0
 
 
 class Command(BaseCommand):
@@ -173,13 +185,14 @@ class Command(BaseCommand):
             try:
                 caches = os.listdir(os.path.join('cache', 'list', entity_name))
                 ENTITY_OFFSETS.append(max(map(int, caches)) + 50)
-            except FileNotFoundError as exc:
+            except (FileNotFoundError, ValueError) as exc:
                 ENTITY_OFFSETS.append(0)
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
             SHOULD_REQUEST[index] = 1
+        last_polled = 0
         while True:
-            if pool._taskqueue.qsize() > PROCESSES:
+            if pool._taskqueue.qsize() > PROCESSES - 1:
                 continue
             starmap_args = []
             for entity_name in ENTITY_NAMES:
@@ -188,4 +201,9 @@ class Command(BaseCommand):
                     continue
                 starmap_args.append((cache, entity_name, ENTITY_OFFSETS[entity_index]))
                 SHOULD_REQUEST[entity_index] = 0  # mark entity as closed
+
+            now = datetime.datetime.now()
+            if now.second and now.second % 5 == 0 and last_polled != now.second:
+                last_polled = now.second
+                poll_auth(now.second)
             pool.starmap_async(cache_passthrough, starmap_args)
