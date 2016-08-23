@@ -15,16 +15,16 @@ Dependencies
 
 - `Postgres 9.5+ <http://www.postgresql.org/>`_ :
 
-    * Libraries are required to build psycopg2. For debian flavoured linux::
+  * Libraries are required to build psycopg2. For debian flavoured linux::
 
         sudo apt-get install postgresql postgresql-server-dev-9.5
 
-    * Postgres user that will create / manage databases should also be able to
-      create / install extensions.
+  * Postgres user that will create / manage databases should also be able to
+    create / install extensions.
 
-    * Postgres user configured by the default settings files is 'postgres'. You
-      will either want to override this with your own settings file, or use the
-      'postgres' user.
+  * Postgres user configured by the default settings files is 'postgres'. You
+    will either want to override this with your own settings file, or use the
+    'postgres' user.
 
 - XML processing is provided by ``lxml`` which has its own dependencies::
 
