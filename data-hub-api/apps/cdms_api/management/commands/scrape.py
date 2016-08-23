@@ -128,11 +128,12 @@ class CDMSListRequestCache(object):
 
 
 def cache_passthrough(cache, entity_name, offset):
+    entity_index = ENTITY_INT_MAP[entity_name]
     identifier = uuid.uuid4()
     print("Starting {0} {1} {2}".format(entity_name, offset, identifier))
     resp = cache.list(entity_name, offset)
     if not resp:
-        SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
+        SHOULD_REQUEST[entity_index] = 1  # mark entity as open
     if resp.status_code >= 400:
         if resp.status_code == 500:
             try:
@@ -141,22 +142,24 @@ def cache_passthrough(cache, entity_name, offset):
                     # let's pretend this means we reached the end and set this
                     # entity type to spent
                     print("Spent {0} {1} {2}".format(entity_name, offset, identifier))
-                    SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
+                    SHOULD_REQUEST[entity_index] = 0
                     return
+                print("Error {0} {1} {2}".format(entity_name, offset, identifier))
+                SHOULD_REQUEST[entity_index] = 0  # one strike and you're out
+                return
             except Exception as exc:
                 print("Failing {0} {1} {2}".format(entity_name, offset, identifier))
-                SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
+                SHOULD_REQUEST[entity_index] = 0
                 # something bad, unknown and unknowable happened
                 pass
         else:
-            SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
+            SHOULD_REQUEST[entity_index] = 0
             print("Failing {0} {1} {2}".format(entity_name, offset, identifier))
     else:
         # everything went according to plan
-        entity_index = ENTITY_INT_MAP[entity_name]
         ENTITY_OFFSETS[entity_index] += 50  # bump offset
         SHOULD_REQUEST[entity_index] = 1  # mark entity as open
-        print("Completing {0} {1} {2}".format(entity_name, offset, identifier))
+    print("Completing {0} {1} {2}".format(entity_name, offset, identifier))
 
 
 def poll_auth(n):
