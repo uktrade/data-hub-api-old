@@ -170,7 +170,11 @@ class Command(BaseCommand):
         cache = CDMSListRequestCache()
         pool = multiprocessing.Pool(processes=PROCESSES)
         for entity_name in ENTITY_NAMES:
-            ENTITY_OFFSETS.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
+            try:
+                caches = os.listdir(os.path.join('cache', 'list', entity_name))
+                ENTITY_OFFSETS.append(max(map(int, caches)) + 50)
+            except FileNotFoundError as exc:
+                ENTITY_OFFSETS.append(0)
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
             SHOULD_REQUEST[index] = 1
