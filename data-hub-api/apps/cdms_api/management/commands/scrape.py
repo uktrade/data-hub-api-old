@@ -113,7 +113,7 @@ class CDMSListRequestCache(object):
                 try: return pickle.load(cache_fh)
                 except: pass
         start_time = datetime.datetime.now()
-        resp = api.list(service, skip=skip)
+        resp = api.list(service, skip=skip, order_by='CreatedOn')
         if not resp.ok:
             return resp
         with open(timing_record(service, skip), 'w') as timing_fh:
