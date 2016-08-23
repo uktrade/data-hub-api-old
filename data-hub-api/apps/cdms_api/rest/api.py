@@ -57,6 +57,23 @@ class CDMSRestApi(object):
         return results['results']
 
     def get(self, service, guid):
+        """
+        Load a single entity from the service with the provided ID.
+
+        Args:
+            service (str): Name of entity type. For example, 'Account'.
+            guid (str): UUID of entity to be deleted.
+
+        Returns:
+            dict: A dictionary containing the content of the entity. Any fields
+                that have no data will be included in the dictionary with
+                `None` values. 400 Bad Request will be returned if guid is not
+                valid.
+
+        Raises:
+            CDMSNotFoundException: If instance with provided guid can't be
+                found.
+        """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
             service=service,
