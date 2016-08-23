@@ -9,6 +9,6 @@ git apply ../postgres-namedatalen.patch
 make
 sudo make install
 mkdir ~/db
-/usr/local/pgsql/bin/initdb ~/db
-/usr/local/pgsql/bin/pg_ctl -D ~/db -l logfile start
+echo '/usr/local/pgsql/bin/initdb ~/db'
+echo '/usr/local/pgsql/bin/pg_ctl -D ~/db -l logfile start'
 # boom

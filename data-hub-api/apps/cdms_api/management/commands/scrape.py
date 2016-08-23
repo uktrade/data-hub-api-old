@@ -9,7 +9,7 @@ from cdms_api.connection import rest_connection as api
 
 from lxml import etree
 
-PROCESSES = 16
+PROCESSES = 64
 FORBIDDEN_ENTITIES = set((
     'Competitor',
     'ConstraintBasedGroup',
@@ -113,6 +113,17 @@ class CDMSListRequestCache(object):
 
     def holds(self, service, skip):
         return os.path.isfile(list_cache_key(service, skip))
+        '''  too expensive
+        path = list_cache_key(service, skip)
+        if not os.path.isfile(path):
+            return False
+        try:
+            with open(path, 'rb') as cache_fh:
+                etree.fromstring(pickle.load(cache_fh))
+        except etree.XMLSyntaxError as exc:
+            return False
+        return True
+        '''
 
     def list(self, service, skip):
         while AUTH_IN_PROGRESS.value == 1:
@@ -121,8 +132,10 @@ class CDMSListRequestCache(object):
             continue
         path = list_cache_key(service, skip)
         if self.holds(service, skip):
+            return  # kick out early
             with open(path, 'rb') as cache_fh:
-                return pickle.load(cache_fh)
+                try: return pickle.load(cache_fh)
+                except: pass
         start_time = datetime.datetime.now()
         resp = api.list(service, skip=skip)
         if not resp.ok:
@@ -154,6 +167,8 @@ class CDMSListRequestCache(object):
 
 def cache_passthrough(cache, entity_name, offset):
     resp = cache.list(entity_name, offset)
+    if not resp:
+        SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
     if resp.status_code >= 400:
         if resp.status_code == 500:
             try:
@@ -166,9 +181,11 @@ def cache_passthrough(cache, entity_name, offset):
                     return
             except Exception as exc:
                 print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
+                SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
                 # something bad happened
                 pass
         else:
+            SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
             print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
     else:
         SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
@@ -184,7 +201,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         cache = CDMSListRequestCache()
         pool = multiprocessing.Pool(processes=PROCESSES)
-        offsets = [1200 for _ in range(len(ENTITY_NAMES))]
+        offsets = []
+        for entity_name in ENTITY_NAMES:
+            offsets.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
             SHOULD_REQUEST[index] = 1
