@@ -11,24 +11,20 @@ Dependencies
 
 - (non-essential) `Virtualenv <http://www.virtualenv.org/en/latest/>`_
 
-- Pip 8.1.1. This particular version is advanced enough to be used by
-  `pip-tools <https://github.com/nvie/pip-tools`_, but not too advanced that
-  the latest version breaks it.
-
 - `Python 3.5 <http://www.python.org/>`_ (Can be installed using ``brew``)
 
 - `Postgres 9.5+ <http://www.postgresql.org/>`_ :
 
-    * Libraries are required to build psycopg2. For debian flavoured linux::
+  * Libraries are required to build psycopg2. For debian flavoured linux::
 
         sudo apt-get install postgresql postgresql-server-dev-9.5
 
-    * Postgres user that will create / manage databases should also be able to
-      create / install extensions.
+  * Postgres user that will create / manage databases should also be able to
+    create / install extensions.
 
-    * Postgres user configured by the default settings files is 'postgres'. You
-      will either want to override this with your own settings file, or use the
-      'postgres' user.
+  * Postgres user configured by the default settings files is 'postgres'. You
+    will either want to override this with your own settings file, or use the
+    'postgres' user.
 
 - XML processing is provided by ``lxml`` which has its own dependencies::
 
@@ -37,6 +33,12 @@ Dependencies
 - Crypto is provided by ``cryptography``, which needs SSL and FFI libraries::
 
       sudo apt-get install libssl-dev libffi-dev
+
+- For development:
+
+  * `Pip 8 <https://pypi.python.org/pypi/pip>`_ : This particular version is
+    advanced enough to be used by `pip-tools
+    <https://github.com/nvie/pip-tools>`_.
 
 
 Installation
