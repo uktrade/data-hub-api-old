@@ -11,7 +11,7 @@ from .cookie_storage_test_case import CookieStorageTestCase
 class TestInit(CookieStorageTestCase):
 
     @unittest.mock.patch.object(ActiveDirectoryAuth, 'setup_session', auto_spec=True)
-    def test_happy(self, m_setup_session):
+    def test_happy(self, mock_setup_session):
         """
         ActiveDirectoryAuth can be initialised with default settings
 
@@ -20,7 +20,7 @@ class TestInit(CookieStorageTestCase):
         result = ActiveDirectoryAuth()
 
         self.assertIsInstance(result.cookie_storage, CookieStorage)
-        m_setup_session.assert_called_once_with()
+        mock_setup_session.assert_called_once_with()
 
     @override_settings(CDMS_ADFS_URL='')
     def test_missing_adfs_url(self):

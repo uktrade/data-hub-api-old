@@ -13,8 +13,16 @@ class CDMSRestApi(object):
         'XRMServices/2011/OrganizationData.svc'
     ])
 
-    def __init__(self):
-        self.auth = ActiveDirectoryAuth()
+    def __init__(self, auth=None):
+        """
+        Args:
+            auth (Optional): An authentication instance. Defaults to a default
+                instance of ActiveDirectoryAuth.
+        """
+        if auth is not None:
+            self.auth = auth
+        else:
+            self.auth = ActiveDirectoryAuth()
 
     def make_request(self, verb, url, data=None):
         """
