@@ -82,14 +82,32 @@ class CDMSRestApi(object):
         return self.make_request('get', url)
 
     def update(self, service, guid, data):
+        """
+        Update a single entity from the service identified with the guid using
+        the provided data. Will only update the fields provided by using a POST
+        request with a MERGE in the method header (this translation from PUT
+        happens in the client).
+
+        Args:
+            service (str): Name of entity type. For example, 'Account'.
+            guid (str): UUID of entity to be deleted.
+            data (dict): Partial data used to update the entity. Empty data can
+                be sent. Any invalid key will crash the API.
+
+        Raises:
+            ErrorResponseException: If there is an error with the POST request
+                that makes the update.
+        """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
             service=service,
             guid=guid
         )
 
+        # TODO: check on POST response
         # PUT returns 204 so we need to make an extra GET query to return the latest values
         self.make_request('put', url, data=data)
+
         return self.get(service, guid)
 
     def create(self, service, data):

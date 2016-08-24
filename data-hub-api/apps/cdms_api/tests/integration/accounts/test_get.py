@@ -69,6 +69,7 @@ class TestGetData(ClientTestCase):
         """
         result = self.client.get('Account', self.guids['a'])
 
+        self.assertServiceCountEqual('Account', 3)
         self.assertEqual(result['Name'], 'A Ltd')
         self.assertEqual(result['Telephone1'], '112233')
 
