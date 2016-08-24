@@ -169,3 +169,32 @@ class TestMakeRequest(TestCase):
         result = self.auth.make_request('get', '__URL__')
 
         self.assertEqual(result, '__DATA__')
+
+    def test_put_translated(self):
+        """
+        NTLMAuth make_request translates PUT into POST + MERGE
+
+        Extra X-HTTP-Method header was added with value 'MERGE'.
+        """
+        patch_post = patch.object(Session, 'post', autospec=True)
+        mock_post = patch_post.start()
+        post_response = Mock(name='Response')
+        post_response.status_code = 200
+        post_response.json.return_value = {'d': '__DATA__'}
+        mock_post.return_value = post_response
+
+        result = self.auth.make_request('put', '__URL__')
+
+        self.assertEqual(result, '__DATA__')
+        self.assertEqual(self.mock_get.call_count, 0)
+        expected_headers = {
+            'Content-type': 'application/json',
+            'Accept': 'application/json',
+            'X-HTTP-Method': 'MERGE',
+        }
+        mock_post.assert_called_once_with(
+            self.auth.session,
+            '__URL__',
+            data={},
+            headers=expected_headers,
+        )

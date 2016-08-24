@@ -36,14 +36,24 @@ class NTLMAuth:
         """
         Pass through calls to self.session
 
-        NOTE: main difference between this and AD's `make_request` is that this
-        one will json decode error messages before offloading them into
-        exceptions.
+        NOTE: There are some major functional differences between this and the
+        AD auth implementation.
 
-        NOTE 2: Hiding the reponse code from the client layer makes it hard to
+            DIFF: JSON error messages are decoded before offloading them into
+            exceptions. AD just dumps the JSON.
+
+            DIFF: When a PUT is received it is converted to POST + MERGE. This
+            does not happen in AD.
+
+        NOTE: Hiding the reponse code from the client layer makes it hard to
         take different actions per verb. E.g. 200 vs 201 on success.
         """
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+
+        if verb == 'put':
+            # Execute verb tunnelling
+            verb = 'post'
+            headers['X-HTTP-Method'] = 'MERGE'
 
         if data is None:
             data = {}
