@@ -1,3 +1,4 @@
+from ....exceptions import ErrorResponseException
 from ..client_test_case import ClientTestCase
 
 
@@ -47,10 +48,11 @@ class TestCreate(ClientTestCase):
         """
         Client CREATE with data that doesn't match fields gets 400
         """
-        result = self.client.create('Account', {'__WIBBLE__': '__VALUE__'})
+        with self.assertRaises(ErrorResponseException) as context:
+            self.client.create('Account', {'__WIBBLE__': '__VALUE__'})
 
-        self.assertEqual(result.status_code, 400)
-        self.assertEqual(result.reason, 'Bad Request')
+        self.assertEqual(context.exception.status_code, 400)
+        self.assertEqual(list(context.exception.message.keys()), ['error'])
 
     def test_extra_data(self):
         """

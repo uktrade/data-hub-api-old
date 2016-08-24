@@ -5,7 +5,7 @@ from django.test.testcases import TestCase, override_settings
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
-from ...exceptions import CDMSNotFoundException
+from ...exceptions import CDMSNotFoundException, ErrorResponseException
 from ...rest.auth.ntlm import NTLMAuth
 
 
@@ -76,11 +76,12 @@ class TestMakeRequest(TestCase):
 
     def test_get_passthrough(self):
         """
-        NTLMAuth make_request does GET with no data using its session
+        NTLMAuth make_request calls GET with no data using its session
 
-        Use status code 500 because it doesn't create an exception.
+        Use status code 302 because it doesn't create an exception - the
+        request result is passed back to caller.
         """
-        self.response.status_code = 500
+        self.response.status_code = 302
 
         result = self.auth.make_request('get', '__URL__')
 
@@ -94,9 +95,12 @@ class TestMakeRequest(TestCase):
 
     def test_get_passthrough_data(self):
         """
-        NTLMAuth make_request does GET with data encoded using its session
+        NTLMAuth make_request calls GET with data encoded using its session
+
+        Use status code 302 because it doesn't create an exception - the
+        request result is passed back to caller.
         """
-        self.response.status_code = 500
+        self.response.status_code = 302
         data = {
             '__KEY__': '__VALUE__',
         }
@@ -133,6 +137,24 @@ class TestMakeRequest(TestCase):
             self.auth.make_request('get', '__URL__', data=data)
 
         self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.message, {'__ERROR__': '__ERROR_DATA__'})
+
+    def test_server_error_exception(self):
+        """
+        NTLMAuth make_request raises exception on 500 error
+
+        Trusts:
+            test_get_passthrough_data: Data was passed through to `get` call.
+        """
+        self.response.status_code = 500
+        self.response.json.return_value = {
+            '__ERROR__': '__ERROR_DATA__',
+        }
+
+        with self.assertRaises(ErrorResponseException) as context:
+            self.auth.make_request('get', '__URL__')
+
+        self.assertEqual(context.exception.status_code, 500)
         self.assertEqual(context.exception.message, {'__ERROR__': '__ERROR_DATA__'})
 
     def test_get_return_data(self):

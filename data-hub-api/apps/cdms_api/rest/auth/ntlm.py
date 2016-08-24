@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
-from ...exceptions import CDMSNotFoundException
+from ...exceptions import CDMSNotFoundException, ErrorResponseException
 
 
 class NTLMAuth:
@@ -55,7 +55,16 @@ class NTLMAuth:
         if resp.status_code in (200, 201):
             return resp.json()['d']
 
-        if resp.status_code == 404:
-            raise CDMSNotFoundException(resp.json(), status_code=resp.status_code)
+        if resp.status_code >= 400:
+
+            EXCEPTIONS_MAP = {
+                # 401: CDMSUnauthorizedException, < No test for this yet, so not including
+                404: CDMSNotFoundException
+            }
+            ExceptionClass = EXCEPTIONS_MAP.get(resp.status_code, ErrorResponseException)
+            raise ExceptionClass(
+                resp.json(),
+                status_code=resp.status_code
+            )
 
         return resp

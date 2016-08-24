@@ -1,6 +1,6 @@
 import uuid
 
-from ....exceptions import CDMSNotFoundException
+from ....exceptions import CDMSNotFoundException, ErrorResponseException
 from ..client_test_case import ClientTestCase
 
 
@@ -19,10 +19,10 @@ class TestDelete(ClientTestCase):
         """
         Client DELETE without a full guid gets 400
         """
-        result = self.client.delete('Account', '1234')
+        with self.assertRaises(ErrorResponseException) as context:
+            self.client.delete('Account', '1234')
 
-        self.assertEqual(result.status_code, 400)
-        self.assertEqual(result.reason, 'Bad Request')
+        self.assertEqual(context.exception.status_code, 400)
 
     def test_missing(self):
         """

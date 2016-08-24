@@ -16,7 +16,7 @@ class TestGetEmpty(ClientTestCase):
         """
         Client GET raises if entity not found
         """
-        with self.assertRaises(CDMSNotFoundException) as context:
+        with self.assertRaises(CDMSNotFoundException):
             self.client.delete('Account', uuid.uuid4())
 
 
