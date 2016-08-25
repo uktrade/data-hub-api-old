@@ -10,7 +10,7 @@ install-test:
 	pip install -r requirements/testing.txt
 
 requirements:
-	$(MAKE) -C requirements clean all
+	$(MAKE) -C requirements all
 
 # Pass some special flags which it's hard to get to work in `NOSE_ARGS`:
 # * Ignore files: ignore apps.migrator.tests.models

@@ -5,6 +5,7 @@ inflection
 psycopg2==2.6.1
 PyYAML
 requests==2.9.1
+requests_ntlm
 pyquery==1.2.11
 pytz==2016.2
 django-reversion==1.10.1
