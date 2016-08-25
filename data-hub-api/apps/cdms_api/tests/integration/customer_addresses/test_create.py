@@ -18,7 +18,28 @@ class TestCreate(ClientTestCase):
 
         self.assertServiceCountEqual('CustomerAddress', 2)
 
-    def test_create_stand_alone(self):
+    def test_account_create_cascade(self):
+        """
+        Client creating Account will feed data into Address instances
+
+        When CustomerAddress entities are loaded back fields do not need the
+        prefix.
+        """
+        data = {
+            'Address1_City': '北京',
+            'Address2_City': 'Auckland',
+        }
+
+        result = self.client.create('Account', data=data)
+
+        self.assertEqual(result['Address1_City'], '北京')
+        self.assertEqual(result['Address2_City'], 'Auckland')
+        address1 = self.client.get('CustomerAddress', result['Address1_AddressId'])
+        self.assertEqual(address1['City'], '北京')
+        address2 = self.client.get('CustomerAddress', result['Address2_AddressId'])
+        self.assertEqual(address2['City'], 'Auckland')
+
+    def test_no_create_stand_alone(self):
         """
         Client can not create CustomerAddress with no data, has no parent
 
@@ -29,3 +50,5 @@ class TestCreate(ClientTestCase):
             self.client.create('CustomerAddress', data={})
 
         self.assertEqual(context.exception.status_code, 500)
+        message_str = context.exception.message['error']['message']['value']
+        self.assertIn(' parented ', message_str)
