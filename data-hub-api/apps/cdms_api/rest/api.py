@@ -67,12 +67,12 @@ class CDMSRestApi(object):
         Returns:
             dict: A dictionary containing the content of the entity. Any fields
                 that have no data will be included in the dictionary with
-                `None` values. 400 Bad Request will be returned if guid is not
-                valid.
+                `None` values.
 
         Raises:
             CDMSNotFoundException: If instance with provided guid can't be
-                found.
+                found or resource that matches service name does not exist.
+            ErrorResponseException: If guid is not valid.
         """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
@@ -94,6 +94,11 @@ class CDMSRestApi(object):
             data (dict): Partial data used to update the entity. Empty data can
                 be sent. Any invalid key will crash the API.
 
+        Returns:
+            dict: A dictionary containing the content of the entity after
+                update. Any fields that have no data will be included in the
+                dictionary with `None` values.
+
         Raises:
             ErrorResponseException: If there is an error with the POST request
                 that makes the update.
@@ -111,6 +116,24 @@ class CDMSRestApi(object):
         return self.get(service, guid)
 
     def create(self, service, data):
+        """
+        Create an entity using provided data in service.
+
+        Args:
+            service (str): Name of entity type. For example, 'Account'.
+            data (dict): Partial data used to create the entity. Empty data can
+                be sent (Dynamics does not check on required fields). Any
+                invalid data key will crash the API.
+
+        Returns:
+            dict: A dictionary containing the content of the entity after
+                creation. Any fields that have no data will be included in the
+                dictionary with `None` values.
+
+        Raises:
+            ErrorResponseException: If any data keys are provided that are not
+                valid for the entity.
+        """
         url = "{base_url}/{service}Set".format(
             base_url=self.CRM_REST_BASE_URL,
             service=service
@@ -133,6 +156,7 @@ class CDMSRestApi(object):
         Raises:
             CDMSNotFoundException: If instance with provided guid can't be
                 found.
+            ErrorResponseException: If provided guid is not valid.
         """
         url = "{base_url}/{service}Set(guid'{guid}')".format(
             base_url=self.CRM_REST_BASE_URL,
@@ -152,6 +176,9 @@ class CDMSRestApi(object):
 
         Returns:
             int: Number of entities deleted.
+
+        Raises:
+            CDMSNotFoundException: If service does not exist.
         """
         counter = 0
         id_name = '{}Id'.format(service)

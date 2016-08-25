@@ -17,7 +17,14 @@ class TestGetEmpty(ClientTestCase):
         Client GET raises if entity not found
         """
         with self.assertRaises(CDMSNotFoundException):
-            self.client.delete('Account', uuid.uuid4())
+            self.client.get('Account', uuid.uuid4())
+
+    def test_no_service(self):
+        """
+        Client GET raises if service does not exist
+        """
+        with self.assertRaises(CDMSNotFoundException):
+            self.client.get('__NO_SERVICE__', uuid.uuid4())
 
 
 class TestGetData(ClientTestCase):

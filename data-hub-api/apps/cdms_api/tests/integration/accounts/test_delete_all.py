@@ -12,6 +12,13 @@ class TestDeleteAllNone(ClientTestCase):
 
         self.assertEqual(result, 0)
 
+    def test_missing(self):
+        """
+        Client delete_all raises if service does not exist
+        """
+        with self.assertRaises(CDMSNotFoundException):
+            self.client.delete_all('__NO_SERVICE__')
+
 
 class TestDeleteAllSome(ClientTestCase):
 

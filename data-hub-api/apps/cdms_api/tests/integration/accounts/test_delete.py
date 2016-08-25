@@ -17,7 +17,7 @@ class TestDelete(ClientTestCase):
 
     def test_bad_request(self):
         """
-        Client DELETE without a full guid gets 400
+        Client DELETE without a full guid raises
         """
         with self.assertRaises(ErrorResponseException) as context:
             self.client.delete('Account', '1234')
@@ -26,7 +26,7 @@ class TestDelete(ClientTestCase):
 
     def test_missing(self):
         """
-        Client DELETEs missing Account, gets 404
+        Client DELETEs missing Account, raises 404
 
         Assert that MSDCRM11's error code matches the expected.
         """
@@ -34,6 +34,13 @@ class TestDelete(ClientTestCase):
             self.client.delete('Account', uuid.uuid4())
 
         self.assertEqual(context.exception.message['error']['code'], MSDCRM11_ERROR_DOES_NOT_EXIST)
+
+    def test_no_service(self):
+        """
+        Client DELETE raises if service does not exist
+        """
+        with self.assertRaises(CDMSNotFoundException):
+            self.client.delete('__NO_SERVICE__', uuid.uuid4())
 
     def test_existing(self):
         """
