@@ -52,3 +52,19 @@ class TestCreate(ClientTestCase):
         self.assertEqual(context.exception.status_code, 500)
         message_str = context.exception.message['error']['message']['value']
         self.assertIn(' parented ', message_str)
+
+    def test_account_can_not_create(self):
+        """
+        Client can not create Address, not top level resource
+        """
+        account = self.client.create('Account', data={})
+        data = {
+            'ParentId': account['AccountId'],
+            'City': 'Newcastle',
+        }
+
+        with self.assertRaises(ErrorResponseException) as context:
+            self.client.create('CustomerAddress', data=data)
+
+        message_str = context.exception.message['error']['message']['value']
+        self.assertIn('top-level resource', message_str)
