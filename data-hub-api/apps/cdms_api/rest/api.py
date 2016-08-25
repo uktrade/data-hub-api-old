@@ -104,8 +104,8 @@ class CDMSRestApi(object):
             guid=guid
         )
 
-        # TODO: check on POST response
-        # PUT returns 204 so we need to make an extra GET query to return the latest values
+        # POST returns 204 so we need to make an extra GET query to return the
+        # latest values
         self.make_request('put', url, data=data)
 
         return self.get(service, guid)
