@@ -5,6 +5,8 @@ from django.core.exceptions import ImproperlyConfigured
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
+from ...exceptions import CDMSNotFoundException, ErrorResponseException
+
 
 class NTLMAuth:
     """
@@ -33,8 +35,25 @@ class NTLMAuth:
     def make_request(self, verb, url, data=None):
         """
         Pass through calls to self.session
+
+        NOTE: There are some major functional differences between this and the
+        AD auth implementation.
+
+            DIFF: JSON error messages are decoded before offloading them into
+            exceptions. AD just dumps the JSON.
+
+            DIFF: When a PUT is received it is converted to POST + MERGE. This
+            does not happen in AD.
+
+        NOTE: Hiding the reponse code from the client layer makes it hard to
+        take different actions per verb. E.g. 200 vs 201 on success.
         """
         headers = {'Content-type': 'application/json', 'Accept': 'application/json'}
+
+        if verb == 'put':
+            # Execute verb tunnelling
+            verb = 'post'
+            headers['X-HTTP-Method'] = 'MERGE'
 
         if data is None:
             data = {}
@@ -45,5 +64,17 @@ class NTLMAuth:
 
         if resp.status_code in (200, 201):
             return resp.json()['d']
+
+        if resp.status_code >= 400:
+
+            EXCEPTIONS_MAP = {
+                # 401: CDMSUnauthorizedException, < No test for this yet, so not including
+                404: CDMSNotFoundException
+            }
+            ExceptionClass = EXCEPTIONS_MAP.get(resp.status_code, ErrorResponseException)
+            raise ExceptionClass(
+                resp.json(),
+                status_code=resp.status_code
+            )
 
         return resp

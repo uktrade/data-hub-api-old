@@ -5,6 +5,7 @@ from django.test.testcases import TestCase, override_settings
 from requests import Session
 from requests_ntlm import HttpNtlmAuth
 
+from ...exceptions import CDMSNotFoundException, ErrorResponseException
 from ...rest.auth.ntlm import NTLMAuth
 
 
@@ -75,9 +76,12 @@ class TestMakeRequest(TestCase):
 
     def test_get_passthrough(self):
         """
-        NTLMAuth make_request does GET with no data using its session
+        NTLMAuth make_request calls GET with no data using its session
+
+        Use status code 302 because it doesn't create an exception - the
+        request result is passed back to caller.
         """
-        self.response.status_code = 404
+        self.response.status_code = 302
 
         result = self.auth.make_request('get', '__URL__')
 
@@ -91,9 +95,12 @@ class TestMakeRequest(TestCase):
 
     def test_get_passthrough_data(self):
         """
-        NTLMAuth make_request does GET with data encoded using its session
+        NTLMAuth make_request calls GET with data encoded using its session
+
+        Use status code 302 because it doesn't create an exception - the
+        request result is passed back to caller.
         """
-        self.response.status_code = 404
+        self.response.status_code = 302
         data = {
             '__KEY__': '__VALUE__',
         }
@@ -109,6 +116,47 @@ class TestMakeRequest(TestCase):
             headers=self.expected_headers,
         )
 
+    def test_get_not_found_exception(self):
+        """
+        NTLMAuth make_request will raise CDMSNotFoundException on 404
+
+        Returned json data is decoded and kept inside exception.
+
+        Trusts:
+            test_get_passthrough_data: Data was passed through to `get` call.
+        """
+        self.response.status_code = 404
+        self.response.json.return_value = {
+            '__ERROR__': '__ERROR_DATA__',
+        }
+        data = {
+            '__KEY__': '__VALUE__',
+        }
+
+        with self.assertRaises(CDMSNotFoundException) as context:
+            self.auth.make_request('get', '__URL__', data=data)
+
+        self.assertEqual(context.exception.status_code, 404)
+        self.assertEqual(context.exception.message, {'__ERROR__': '__ERROR_DATA__'})
+
+    def test_server_error_exception(self):
+        """
+        NTLMAuth make_request raises exception on 500 error
+
+        Trusts:
+            test_get_passthrough_data: Data was passed through to `get` call.
+        """
+        self.response.status_code = 500
+        self.response.json.return_value = {
+            '__ERROR__': '__ERROR_DATA__',
+        }
+
+        with self.assertRaises(ErrorResponseException) as context:
+            self.auth.make_request('get', '__URL__')
+
+        self.assertEqual(context.exception.status_code, 500)
+        self.assertEqual(context.exception.message, {'__ERROR__': '__ERROR_DATA__'})
+
     def test_get_return_data(self):
         """
         NTLMAuth make_request returns 'd' content of json on success
@@ -121,3 +169,32 @@ class TestMakeRequest(TestCase):
         result = self.auth.make_request('get', '__URL__')
 
         self.assertEqual(result, '__DATA__')
+
+    def test_put_translated(self):
+        """
+        NTLMAuth make_request translates PUT into POST + MERGE
+
+        Extra X-HTTP-Method header was added with value 'MERGE'.
+        """
+        patch_post = patch.object(Session, 'post', autospec=True)
+        mock_post = patch_post.start()
+        post_response = Mock(name='Response')
+        post_response.status_code = 200
+        post_response.json.return_value = {'d': '__DATA__'}
+        mock_post.return_value = post_response
+
+        result = self.auth.make_request('put', '__URL__')
+
+        self.assertEqual(result, '__DATA__')
+        self.assertEqual(self.mock_get.call_count, 0)
+        expected_headers = {
+            'Content-type': 'application/json',
+            'Accept': 'application/json',
+            'X-HTTP-Method': 'MERGE',
+        }
+        mock_post.assert_called_once_with(
+            self.auth.session,
+            '__URL__',
+            data={},
+            headers=expected_headers,
+        )

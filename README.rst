@@ -91,6 +91,24 @@ command is this::
 
 There is further documentation about running tests in ``Makefile``.
 
+There is a set of integration tests which use private configuration to connect
+to a vanilla Microsoft Dynamics CRM 2011 server. These use NTLM authentication
+and require the following settings:
+
+* ``CDMS_BASE_URL``
+* ``CDMS_USERNAME``
+* ``CDMS_PASSWORD``
+
+In addition, the ``TEST_INTEGRATION`` setting must be set to ``True`` for
+integration tests to be run (and not skipped). Default behaviour if this
+setting is missing is for the tests to be skipped by the ``skipIntegration``
+decorator.
+
+The settings above can all be set via environment variables - ``DJANGO__``
+(Django dunder) should be prepended to the setting name. For example, override
+the ``CDMS_PASSWORD`` setting by creating the ``DJANGO__CDMS_PASSWORD`` env
+var.
+
 
 Requirements
 ............
