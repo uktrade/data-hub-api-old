@@ -56,6 +56,9 @@ class TestCreate(ClientTestCase):
     def test_account_can_not_create(self):
         """
         Client can not create Address, not top level resource
+
+        Even the if current address1 is deleted before the creation, it still
+        fails.
         """
         account = self.client.create('Account', data={})
         data = {
