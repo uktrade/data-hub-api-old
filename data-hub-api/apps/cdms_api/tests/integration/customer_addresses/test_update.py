@@ -4,9 +4,11 @@ from .existing_customer_address_test_case import ExistingCustomerAddressTestCase
 
 class TestUpdate(ExistingCustomerAddressTestCase):
     """
-    In both tests below:
+    Both tests below update the existing Address1 to be Buckingham Palace. Note
+    the following features:
 
-    * On address line 2 replace 'Chaoyang' with empty string.
+    * On address line 2 replace 'Chaoyang' with empty string to remove the
+        field.
     * Create a (new) postcode entry for the address.
     * Number of addresses stayed the same. Address1 guid remained unchanged and
         its entity was updated.

@@ -19,10 +19,6 @@ class TestDelete(ExistingCustomerAddressTestCase):
     def test_delete_stand_alone(self):
         """
         Client deletes single CustomerAddress from Account, Address left None
-
-        Dynamics creates a new CustomerAddress entity to replace it so that the
-        number remains the same. New CustomerAddress can be loaded and is
-        empty. Original Address2 remains the same and in place.
         """
         self.client.delete('CustomerAddress', self.guids['address1'])
 

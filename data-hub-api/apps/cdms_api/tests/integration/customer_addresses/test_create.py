@@ -44,7 +44,7 @@ class TestCreate(ClientTestCase):
         Client can not create CustomerAddress with no data, has no parent
 
         NOTE: This is considered a server-side error and not a bad request,
-        unlike other fails that are simpilar.
+        unlike other fails that are simpler.
         """
         with self.assertRaises(ErrorResponseException) as context:
             self.client.create('CustomerAddress', data={})
