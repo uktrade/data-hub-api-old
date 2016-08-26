@@ -95,3 +95,27 @@ class TestUpdate(ClientTestCase):
             self.client.update('Account', self.guids['b'], data)
 
         self.assertEqual(context.exception.status_code, 400)
+
+    def test_remove_data_empty_string(self):
+        """
+        Client can update a record and remove data with empty string
+        """
+        data = {
+            'Name': '',
+        }
+
+        result = self.client.update('Account', self.guids['b'], data)
+
+        self.assertIsNone(result['Name'])
+
+    def test_remove_data_none(self):
+        """
+        Client can update a record and remove data with None
+        """
+        data = {
+            'Name': None,
+        }
+
+        result = self.client.update('Account', self.guids['b'], data)
+
+        self.assertIsNone(result['Name'])
