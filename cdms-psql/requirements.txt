@@ -2,3 +2,4 @@ git+https://github.com/UKTradeInvestment/pyslet.git@70f9731#egg=pyslet
 sqlparse
 pytest
 psycopg2
+sqlalchemy

@@ -9,7 +9,7 @@ from cdms_api.connection import rest_connection as api
 
 from lxml import etree
 
-PROCESSES = 64
+PROCESSES = 32
 FORBIDDEN_ENTITIES = set((
     'Competitor',
     'ConstraintBasedGroup',
@@ -56,6 +56,16 @@ FORBIDDEN_ENTITIES = set((
     'optevia_uktiorder',
 ))
 
+INFINITE_ENTITIES = set()  # (  # API requests generate rows here?
+'''
+    'Queue',
+    'detica_optevia_servicedelivery_detica_typeofsu',
+    'optevia_exportlog',
+    'RolePrivileges',
+    'SystemUserProfiles',
+    'SystemUserRoles',
+))
+'''
 with open('spent', 'r') as spent_fh:
     SPENT_HERE = [line.strip() for line in spent_fh.readlines()]
 
@@ -63,7 +73,11 @@ with open('cdms-psql/entity-table-map/entities', 'r') as entities_fh:
     ENTITY_NAMES = []
     for line in entities_fh.readlines():
         entity_name = line.strip()
-        if entity_name not in FORBIDDEN_ENTITIES:  # and entity_name not in SPENT_HERE:
+        conditions = (
+            entity_name not in FORBIDDEN_ENTITIES,
+            entity_name not in INFINITE_ENTITIES,
+        )
+        if all(conditions):
             ENTITY_NAMES.append(entity_name)
 
 ENTITY_INT_MAP = {
@@ -188,7 +202,12 @@ def cache_passthrough(cache, entity_name, offset):
             SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0
             print("{0} ({1}): {2}".format(resp.status_code, offset, entity_name))
     else:
-        SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
+        root = etree.fromstring(resp.content)
+        if not root.findall('{http://www.w3.org/2005/Atom}entry'):
+            print("spent other: {0}".format(entity_name))
+            SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 0  # the other way to page out?
+        else:
+            SHOULD_REQUEST[ENTITY_INT_MAP[entity_name]] = 1  # mark entity as open
 
 
 class Command(BaseCommand):
@@ -203,7 +222,10 @@ class Command(BaseCommand):
         pool = multiprocessing.Pool(processes=PROCESSES)
         offsets = []
         for entity_name in ENTITY_NAMES:
-            offsets.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
+            try:
+                offsets.append(max(map(int, os.listdir(os.path.join('cache', 'list', entity_name)))) + 50)
+            except (FileNotFoundError, ValueError):
+                offsets.append(0)
         api.setup_session(True)
         for index in range(len(ENTITY_NAMES)):
             SHOULD_REQUEST[index] = 1
