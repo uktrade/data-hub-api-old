@@ -1,8 +1,6 @@
 node {
    stage 'Checkout'
-   ws {
-     checkout scm
-   }
+   checkout scm
 
    stage 'Unit test'
    step([$class: 'GitHubSetCommitStatusBuilder'])
@@ -17,5 +15,5 @@ node {
    // step([$class: 'JUnitResultArchiver', testResults: 'results/**/*.xml'])
 
    stage 'Clean workspace'
-   step([$class: 'WsCleanup'])
+   deleteDir()
 }
