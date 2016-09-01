@@ -15,7 +15,7 @@ Dependencies
 
 - `Postgres 9.5+ <http://www.postgresql.org/>`_ :
 
-  * Libraries are required to build psycopg2. For debian flavoured linux::
+  * Libraries are required to build psycopg2. For Debian flavoured linux::
 
         sudo apt-get install postgresql postgresql-server-dev-9.5
 
